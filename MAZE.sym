@@ -1,0 +1,8 @@
+.label subs=$82a
+.label bend=$80c
+.label text=$82a
+.label begin=$810 {
+}
+.label data=$82a
+.label basicStart=$2000
+.label end=$829

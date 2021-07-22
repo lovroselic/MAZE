@@ -1,0 +1,24 @@
+******************************* Segment: Default *******************************
+******************************** Segment: MAZE *********************************
+[Header]
+0801: 0c 08     -         .word bend
+0803: 0d 00     -         .byte $0d, $00			//;line number
+0805: 9e        -         .byte $9E				//;SYS
+0806: 20        -         .byte $20				//;space
+0807: 32 30 36 34                                      -         .byte $32,$30,$36,$34	//;start 2064
+080b: 00        -         .byte $00				//;end of line
+080c: 00 00     - bend:   .byte $00, $00			//;end of basic program
+
+[Main]
+0810: a9 e0     - begin:  lda	#char
+0812: a0 00     -         ldy #0
+0814: 99 00 04  - fill:   sta addr,y
+0817: 99 00 05  -         sta addr + 256,y
+081a: 99 00 06  -         sta addr + 512,y
+081d: 99 00 07  -         sta addr + 768,y
+0820: c8        -         iny
+0821: d0 f1     -         bne fill
+0823: a5 c5     - key:    lda LSTX		//get character in A
+0825: c9 40     -         cmp #64			//no key
+0827: f0 fa     -         beq key
+0829: 60        - end:    rts
