@@ -9,6 +9,11 @@ dependencies:
 memory:
 	dataRND: 5byte
 *****************************************************************/
+// imports required
+#import "LIB_SYS.asm"
+#import "LIB_Basic.asm"
+#import "LIB_Kernel.asm"
+#import "LIB_SID.asm"
 //-----------------------CONST-----------------------------------
 
 //--- SUBS -------------------------------------------------------

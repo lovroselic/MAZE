@@ -1,3 +1,7 @@
 *.bat
 *.d64
 *.sym
+*.jar
+*.code-workspace
+*.vs
+*source.txt
