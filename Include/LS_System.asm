@@ -2,7 +2,7 @@
 //----------------------------------------------------------------			
 /*****************************************************************
 LS_System.asm
-v0.01
+v0.02
 
 dependencies:
 	standard includes
@@ -35,5 +35,14 @@ arguments: X origin, Y destination
 */
 			lda X
 			sta Y
+}
+.macro MOV16(X, Y){
+/*
+arguments: X origin, Y destination
+*/
+			lda X
+			sta Y
+			lda X + 1
+			sta Y + 1
 }
 //----------------------------------------------------------------	

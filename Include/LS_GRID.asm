@@ -2,8 +2,8 @@
 //----------------------------------------------------------------			
 /*****************************************************************
 LS_GRID.asm
-v0.01
-GRID steucts and methods
+v0.02
+GRID structs and methods
 
 dependencies:
 	standard includes

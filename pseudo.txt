@@ -1,0 +1,14 @@
+do
+	do
+		start -> dot
+		pointers from start
+		if None: break
+		select random
+			push other on stack
+	while true
+	do
+		check stack: if empty: return
+		get branch pointer from stack
+		(repeat if not safe)
+	while pointer is not safe
+while true

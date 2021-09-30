@@ -5,7 +5,7 @@
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.01.02"
+.const VER	= "0.01.03"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -41,10 +41,32 @@
 		//interrupt end
 
 begin:
-		FillScreen(SCREEN, $E0)
+		//FillScreen(SCREEN, $E0)
+		//WaitAnyKey()
+
+init:
+		//random start x,: 1 - 38;  1,23
+		SetSIDforRandom()
+		RandomNumber(1, 38)
+		MOV8(WINT,startX)
+		RandomNumber(1, 23)
+		MOV8(WINT,startY)
+
+		
+
+		INIT_MAZE(SCREEN)
+		MAZE(startX)
+
 		WaitAnyKey()
+		//debug
+		Console8(startX)
+		Comma()
+		Console8(startY)
+		EndLine()
+		
 		
 end:
+		WaitAnyKey()
 		rts
 
 
@@ -100,6 +122,8 @@ text: 		* = text "Text"
 
 data: 		* = data "Data"
 modeflag:		.byte 0
+startX:			.byte 0
+startY:			.byte 0
 
 //--------------------MACROS--------------------------------
 
