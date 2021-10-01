@@ -24,7 +24,7 @@
 082c: 8d 11 d0  -         sta CONTROL_REGISTER1
 082f: a9 32     -         lda #startRaster
 0831: 8d 12 d0  -         sta RASTER_COUNTER
-0834: a9 74     -         lda #<address
+0834: a9 a4     -         lda #<address
 0836: 8d 14 03  -         sta IRQVEC
 0839: a9 09     -         lda #>address
 083b: 8d 15 03  -         sta	IRQVEC+1
@@ -42,9 +42,9 @@
 0856: 85 fb     -         sta ZP1
 0858: a9 00     -         lda #>start
 085a: 85 fc     -         sta ZP2
-085c: 20 27 09  -         jsr rnd_XY
+085c: 20 57 09  -         jsr rnd_XY
 085f: a5 14     -         lda X
-0861: 8d aa 09  -         sta Y
+0861: 8d da 09  -         sta Y
 0864: a9 17     -         lda #<end	
 0866: 85 fd     -         sta ZP3
 0868: a9 00     -         lda #>end
@@ -53,16 +53,16 @@
 086e: 85 fb     -         sta ZP1
 0870: a9 00     -         lda #>start
 0872: 85 fc     -         sta ZP2
-0874: 20 27 09  -         jsr rnd_XY
+0874: 20 57 09  -         jsr rnd_XY
 0877: a5 14     -         lda X
-0879: 8d ab 09  -         sta Y
+0879: 8d db 09  -         sta Y
 087c: a9 00     -         lda #<memory
-087e: 8d 72 09  -         sta maze_memory_alloc
+087e: 8d a2 09  -         sta maze_memory_alloc
 0881: a9 04     -         lda #>memory
-0883: 8d 73 09  -         sta maze_memory_alloc+1
-0886: ad 72 09  -         lda X
+0883: 8d a3 09  -         sta maze_memory_alloc+1
+0886: ad a2 09  -         lda X
 0889: 85 fb     -         sta Y
-088b: ad 73 09  -         lda X + 1
+088b: ad a3 09  -         lda X + 1
 088e: 85 fc     -         sta Y + 1
 0890: a9 e0     -         lda	#value
 0892: a2 04     -         ldx #4
@@ -73,139 +73,165 @@
 089b: e6 fc     -         inc ZP2
 089d: ca        -         dex
 089e: d0 f4     -         bne block
-08a0: ad 72 09  - begin:  lda X
+08a0: ad a2 09  - begin:  lda X
 08a3: 85 fb     -         sta Y
-08a5: ad 73 09  -         lda X + 1
+08a5: ad a3 09  -         lda X + 1
 08a8: 85 fc     -         sta Y + 1
-08aa: a5 fb     -         lda ZP1
-08ac: ac ab 09  -         ldy grid+1		//grid.y
-08af: 18        - loop:   clc
-08b0: 69 28     -         adc #$28
-08b2: 85 fb     -         sta ZP1
-08b4: 90 02     -         bcc skip
-08b6: e6 fc     -         inc ZP2
-08b8: 88        - skip:   dey
-08b9: d0 f4     -         bne loop
-08bb: 18        -         clc
-08bc: 6d aa 09  -         adc grid		//grid.x
-08bf: 85 fb     -         sta ZP1
-08c1: 90 02     -         bcc skip2
-08c3: e6 fc     -         inc ZP2
-08c5: a9 20     - skip2:  lda #DOT
-08c7: a0 00     -         ldy #0
-08c9: 91 fb     -         sta (ZP1),y
-08cb: a5 c5     - key:    lda LSTX		//get character in A
-08cd: c9 40     -         cmp #64			//no key
-08cf: f0 fa     -         beq key
-08d1: a9 00     -         lda #00
-08d3: ae aa 09  -         ldx x
-08d6: 20 cd bd  -         jsr PRINT_INT
-08d9: a9 2c     -         lda #CHR_Comma
-08db: 20 d2 ff  -         jsr CHROUT
-08de: a9 00     -         lda #00
-08e0: ae ab 09  -         ldx x
-08e3: 20 cd bd  -         jsr PRINT_INT
-08e6: a9 0d     -         lda #CHR_Return
-08e8: 20 d2 ff  -         jsr CHROUT
-08eb: a5 c5     - end,key:lda LSTX		//get character in A
-08ed: c9 40     -         cmp #64			//no key
-08ef: f0 fa     -         beq key
-08f1: 60        -         rts
+08aa: a9 00     -         lda #0
+08ac: 85 fe     -         sta ZP4			//clear, we don't know what is there
+08ae: ad db 09  -         lda grid+1		//grid.y
+08b1: 85 fd     -         sta ZP3
+08b3: a0 03     - dot:    ldy #03
+08b5: 06 fd     - mul8:   asl ZP3
+08b7: 26 fe     -         rol ZP4
+08b9: 88        -         dey
+08ba: d0 f9     -         bne mul8
+08bc: 18        -         clc
+08bd: a5 fb     -         lda X
+08bf: 65 fd     -         adc Y
+08c1: 85 fb     -         sta X
+08c3: 90 02     -         bcc skip
+08c5: e6 fc     -         inc X+1
+08c7: 18        - skip:   clc
+08c8: a5 fc     -         lda X+1
+08ca: 65 fe     -         adc Y+1
+08cc: 85 fc     -         sta X+1	
+08ce: a0 02     -         ldy #02	
+08d0: 06 fd     - mul32:  asl ZP3
+08d2: 26 fe     -         rol ZP4
+08d4: 88        -         dey
+08d5: d0 f9     -         bne mul32
+08d7: 18        -         clc
+08d8: a5 fb     -         lda X
+08da: 65 fd     -         adc Y
+08dc: 85 fb     -         sta X
+08de: 90 02     -         bcc skip
+08e0: e6 fc     -         inc X+1
+08e2: 18        - skip:   clc
+08e3: a5 fc     -         lda X+1
+08e5: 65 fe     -         adc Y+1
+08e7: 85 fc     -         sta X+1	
+08e9: 18        -         clc
+08ea: a5 fb     -         lda X
+08ec: 6d da 09  -         adc y	
+08ef: 85 fb     -         sta X
+08f1: 90 02     -         bcc out+2
+08f3: e6 fc     - out:    inc X+1
+08f5: a9 20     - skip4,paint:lda #DOT
+08f7: a0 00     -         ldy #0
+08f9: 91 fb     -         sta (ZP1),y
+08fb: a5 c5     - key:    lda LSTX		//get character in A
+08fd: c9 40     -         cmp #64			//no key
+08ff: f0 fa     -         beq key
+0901: a9 00     -         lda #00
+0903: ae da 09  -         ldx x
+0906: 20 cd bd  -         jsr PRINT_INT
+0909: a9 2c     -         lda #CHR_Comma
+090b: 20 d2 ff  -         jsr CHROUT
+090e: a9 00     -         lda #00
+0910: ae db 09  -         ldx x
+0913: 20 cd bd  -         jsr PRINT_INT
+0916: a9 0d     -         lda #CHR_Return
+0918: 20 d2 ff  -         jsr CHROUT
+091b: a5 c5     - end,key:lda LSTX		//get character in A
+091d: c9 40     -         cmp #64			//no key
+091f: f0 fa     -         beq key
+0921: 60        -         rts
 
 [Subroutines]
-08f2: 20 d2 ff  - subs,printSequence:jsr CHROUT
-08f5: ca        -         dex
-08f6: d0 fa     -         bne printSequence
-08f8: 60        -         rts
-08f9: 86 fb     - printString:stx ZP1			//lo
-08fb: 84 fc     -         sty	ZP2			//hi
-08fd: a0 00     - next:   ldy #$00
-08ff: b1 fb     -         lda (ZP1),y		//load character
-0901: c9 00     -         cmp #$00
-0903: f0 0d     -         beq	out			//null terminator
-0905: 20 d2 ff  -         jsr CHROUT
-0908: 18        -         clc
-0909: e6 fb     -         inc	ZP1
-090b: d0 f0     -         bne	next
-090d: e6 fc     -         inc ZP2
-090f: 4c fd 08  -         jmp next
-0912: 60        - out:    rts
-0913: 86 fb     - lenString:stx ZP1			//lo
-0915: 84 fc     -         sty	ZP2			//hi
-0917: a0 00     -         ldy #$00		
-0919: 84 fd     -         sty ZP3			//counter
-091b: b1 fb     - next:   lda (ZP1),y		//load character
-091d: c9 00     -         cmp #$00
-091f: f0 04     -         beq	out			//null terminator
-0921: c8        -         iny
-0922: 4c 1b 09  -         jmp next
-0925: 98        - out:    tya
-0926: 60        -         rts
-0927: a9 00     - rnd_XY: lda #00
-0929: 20 9a e0  -         jsr RND
-092c: e6 fd     -         inc ZP3
-092e: d0 02     -         bne skip1
-0930: e6 fe     -         inc ZP4
-0932: a5 fd     - skip1:  lda ZP3
-0934: 38        -         sec
-0935: e5 fb     -         sbc ZP1
-0937: 85 fd     -         sta ZP3
-0939: a5 fe     -         lda ZP4
-093b: e5 fc     -         sbc ZP2
-093d: 85 fe     -         sta ZP4			
-093f: a4 fd     - toFloat:ldy ZP3
-0941: a5 fe     -         lda ZP4
-0943: 20 91 b3  -         jsr GIVAYF //A(h),Y(L) - FAC
-0946: a2 6d     -         ldx #<flt
-0948: a0 09     -         ldy #>flt
-094a: 20 d4 bb  -         jsr MOVMF	//store FAC to flt
-094d: a9 7f     -         lda #$7f
-094f: 20 9a e0  -         jsr RND
-0952: a9 6d     -         lda #<flt
-0954: a0 09     -         ldy #>flt
-0956: 20 28 ba  -         jsr FMULT
-0959: 20 cc bc  -         jsr FAINT
-095c: 20 bf b1  -         jsr AYINT
-095f: a5 65     -         lda $65			
-0961: 18        -         clc
-0962: 65 fb     -         adc ZP1
-0964: 85 14     -         sta WINT
-0966: a5 64     -         lda $64
-0968: 65 fc     -         adc ZP2
-096a: 85 15     -         sta WINT+1
-096c: 60        - over:   rts
+0922: 20 d2 ff  - subs,printSequence:jsr CHROUT
+0925: ca        -         dex
+0926: d0 fa     -         bne printSequence
+0928: 60        -         rts
+0929: 86 fb     - printString:stx ZP1			//lo
+092b: 84 fc     -         sty	ZP2			//hi
+092d: a0 00     - next:   ldy #$00
+092f: b1 fb     -         lda (ZP1),y		//load character
+0931: c9 00     -         cmp #$00
+0933: f0 0d     -         beq	out			//null terminator
+0935: 20 d2 ff  -         jsr CHROUT
+0938: 18        -         clc
+0939: e6 fb     -         inc	ZP1
+093b: d0 f0     -         bne	next
+093d: e6 fc     -         inc ZP2
+093f: 4c 2d 09  -         jmp next
+0942: 60        - out:    rts
+0943: 86 fb     - lenString:stx ZP1			//lo
+0945: 84 fc     -         sty	ZP2			//hi
+0947: a0 00     -         ldy #$00		
+0949: 84 fd     -         sty ZP3			//counter
+094b: b1 fb     - next:   lda (ZP1),y		//load character
+094d: c9 00     -         cmp #$00
+094f: f0 04     -         beq	out			//null terminator
+0951: c8        -         iny
+0952: 4c 4b 09  -         jmp next
+0955: 98        - out:    tya
+0956: 60        -         rts
+0957: a9 00     - rnd_XY: lda #00
+0959: 20 9a e0  -         jsr RND
+095c: e6 fd     -         inc ZP3
+095e: d0 02     -         bne skip1
+0960: e6 fe     -         inc ZP4
+0962: a5 fd     - skip1:  lda ZP3
+0964: 38        -         sec
+0965: e5 fb     -         sbc ZP1
+0967: 85 fd     -         sta ZP3
+0969: a5 fe     -         lda ZP4
+096b: e5 fc     -         sbc ZP2
+096d: 85 fe     -         sta ZP4			
+096f: a4 fd     - toFloat:ldy ZP3
+0971: a5 fe     -         lda ZP4
+0973: 20 91 b3  -         jsr GIVAYF //A(h),Y(L) - FAC
+0976: a2 9d     -         ldx #<flt
+0978: a0 09     -         ldy #>flt
+097a: 20 d4 bb  -         jsr MOVMF	//store FAC to flt
+097d: a9 7f     -         lda #$7f
+097f: 20 9a e0  -         jsr RND
+0982: a9 9d     -         lda #<flt
+0984: a0 09     -         ldy #>flt
+0986: 20 28 ba  -         jsr FMULT
+0989: 20 cc bc  -         jsr FAINT
+098c: 20 bf b1  -         jsr AYINT
+098f: a5 65     -         lda $65			
+0991: 18        -         clc
+0992: 65 fb     -         adc ZP1
+0994: 85 14     -         sta WINT
+0996: a5 64     -         lda $64
+0998: 65 fc     -         adc ZP2
+099a: 85 15     -         sta WINT+1
+099c: 60        - over:   rts
 
 [Data RND]
-096d: 00 00 00 00 00                                   - dataRND,flt:.byte 0,0,0,0,0
+099d: 00 00 00 00 00                                   - dataRND,flt:.byte 0,0,0,0,0
 
 [MAZE Memory]
-0972: 40 00     - MAZE_memory,maze_memory_alloc:.word $0040 	//screen by default, safe
-0974: ad a9 09  - irqcode:lda modeflag
-0977: f0 03     -         beq mode1
-0979: 4c 91 09  -         jmp mode2
-097c: a9 01     - mode1:  lda #$01
-097e: 8d a9 09  -         sta modeflag
-0981: a9 0e     -         lda #LIGHTBLUE
-0983: 8d 20 d0  -         sta BORDER
-0986: a9 32     -         lda #startRaster
-0988: 8d 12 d0  -         sta RASTER_COUNTER
-098b: 0e 19 d0  -         asl INTERRUPT_REQUEST_REGISTER
-098e: 4c 31 ea  -         jmp IRQOUT
-0991: a9 00     - mode2:  lda #$00
-0993: 8d a9 09  -         sta modeflag
-0996: a9 06     -         lda #BLUE
-0998: 8d 20 d0  -         sta BORDER
-099b: a9 fa     -         lda #endRaster
-099d: 8d 12 d0  -         sta RASTER_COUNTER
-09a0: 0e 19 d0  -         asl INTERRUPT_REQUEST_REGISTER
-09a3: 68        -         pla
-09a4: a8        -         tay
-09a5: 68        -         pla
-09a6: aa        -         tax
-09a7: 68        -         pla
-09a8: 40        -         rti
+09a2: 40 00     - MAZE_memory,maze_memory_alloc:.word $0040 	//screen by default, safe
+09a4: ad d9 09  - irqcode:lda modeflag
+09a7: f0 03     -         beq mode1
+09a9: 4c c1 09  -         jmp mode2
+09ac: a9 01     - mode1:  lda #$01
+09ae: 8d d9 09  -         sta modeflag
+09b1: a9 0e     -         lda #LIGHTBLUE
+09b3: 8d 20 d0  -         sta BORDER
+09b6: a9 32     -         lda #startRaster
+09b8: 8d 12 d0  -         sta RASTER_COUNTER
+09bb: 0e 19 d0  -         asl INTERRUPT_REQUEST_REGISTER
+09be: 4c 31 ea  -         jmp IRQOUT
+09c1: a9 00     - mode2:  lda #$00
+09c3: 8d d9 09  -         sta modeflag
+09c6: a9 06     -         lda #BLUE
+09c8: 8d 20 d0  -         sta BORDER
+09cb: a9 fa     -         lda #endRaster
+09cd: 8d 12 d0  -         sta RASTER_COUNTER
+09d0: 0e 19 d0  -         asl INTERRUPT_REQUEST_REGISTER
+09d3: 68        -         pla
+09d4: a8        -         tay
+09d5: 68        -         pla
+09d6: aa        -         tax
+09d7: 68        -         pla
+09d8: 40        -         rti
 
 [Data]
-09a9: 00        - text,data,modeflag:.byte 0
-09aa: 00        - startX: .byte 0
-09ab: 00        - startY: .byte 0
+09d9: 00        - text,data,modeflag:.byte 0
+09da: 00        - startX: .byte 0
+09db: 00        - startY: .byte 0

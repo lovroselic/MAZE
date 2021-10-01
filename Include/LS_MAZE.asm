@@ -65,6 +65,42 @@ arguments: grid 16 bit, address of x and y component
 */
 .const DOT = $20
 		MOV16(maze_memory_alloc, ZP1)
+		lda #0
+		sta ZP4			//clear, we don't know what is there
+		lda grid+1		//grid.y
+		sta ZP3
+		
+dot:	ldy #03
+mul8:	asl ZP3
+		rol ZP4
+		dey
+		bne mul8
+		ADD16(ZP1,ZP3)
+
+		ldy #02	
+mul32:	asl ZP3
+		rol ZP4
+		dey
+		bne mul32
+		ADD16(ZP1,ZP3)
+		
+		ADD8to16(ZP1,grid)
+		
+skip4:
+
+paint:	lda #DOT
+		ldy #0
+		sta (ZP1),y
+
+}
+
+.macro MAZE_dot1(grid){
+/*
+slow, abandoned
+arguments: grid 16 bit, address of x and y component
+*/
+.const DOT = $20
+		MOV16(maze_memory_alloc, ZP1)
 		lda ZP1
 		ldy grid+1		//grid.y
 loop:	clc
@@ -83,7 +119,7 @@ skip2:	lda #DOT
 		ldy #0
 		sta (ZP1),y
 }
-//.const WALL = $E0
+
 .macro MAZE(start){
 /*
 arguments: start: grid(x,y)
