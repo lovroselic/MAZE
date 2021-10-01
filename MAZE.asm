@@ -5,7 +5,7 @@
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.01.05"
+.const VER	= "0.02.00"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -51,9 +51,10 @@ init:
 		RandomNumber(1, 23)
 		MOV8(WINT,startY)
 
-		INIT_MAZE(SCREEN)
+		INIT_MAZE(SCREEN, startX)
 
-		MAZE(startX)
+		jsr MAZE
+		//MAZE(startX)
 
 		WaitAnyKey()
 		//debug
