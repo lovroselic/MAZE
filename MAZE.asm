@@ -5,7 +5,7 @@
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.01.03"
+.const VER	= "0.01.04"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
