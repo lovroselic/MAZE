@@ -5,7 +5,7 @@
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.01.04"
+.const VER	= "0.01.05"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -45,24 +45,22 @@ begin:
 		//WaitAnyKey()
 
 init:
-		//random start x,: 1 - 38;  1,23
 		SetSIDforRandom()
 		RandomNumber(1, 38)
 		MOV8(WINT,startX)
 		RandomNumber(1, 23)
 		MOV8(WINT,startY)
 
-		
-
 		INIT_MAZE(SCREEN)
+
 		MAZE(startX)
 
 		WaitAnyKey()
 		//debug
-		Console8(startX)
-		Comma()
-		Console8(startY)
-		EndLine()
+		//Console8(startX)
+		//Comma()
+		//Console8(startY)
+		//EndLine()
 		
 		
 end:

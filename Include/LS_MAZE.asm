@@ -2,7 +2,7 @@
 //----------------------------------------------------------------			
 /*****************************************************************
 LS_MAZE.asm
-v0.01
+v0.02
 
 MAZE structs and methods
 
@@ -17,17 +17,6 @@ memory:
 
 .const WALL 	= $E0
 .const DOT 		= $20
-
-//-----------------------STRUCT-----------------------------------
-
-//.struct Grid {x, y}
-//.struct Vector {x, y}
-
-//--- SUBS -------------------------------------------------------
-
-//-----------------------DATA-------------------------------
-//#name#: 		* = #name# "#name#"
-
 
 //-----------------------MACROS-----------------------------
 .macro INIT_MAZE(memory){
@@ -64,60 +53,27 @@ fill:
 arguments: grid 16 bit, address of x and y component
 */
 .const DOT = $20
-		MOV16(maze_memory_alloc, ZP1)
-		lda #0
-		sta ZP4			//clear, we don't know what is there
-		lda grid+1		//grid.y
-		sta ZP3
+			MOV16(maze_memory_alloc, ZP1)
+			lda #0
+			sta ZP4			//clear, we don't know what is there
+			lda grid+1		//grid.y
+			sta ZP3
 		
-dot:	ldy #03
-mul8:	asl ZP3
-		rol ZP4
-		dey
-		bne mul8
-		ADD16(ZP1,ZP3)
+maze_dot:	ldy #03
+mul8:		ASL16(ZP3)
+			dey
+			bne mul8
+			ADD16(ZP1,ZP3)
+			ldy #02	
+mul32:		ASL16(ZP3)
+			dey
+			bne mul32
+			ADD16(ZP1,ZP3)	
+			ADD8to16(ZP1,grid)
 
-		ldy #02	
-mul32:	asl ZP3
-		rol ZP4
-		dey
-		bne mul32
-		ADD16(ZP1,ZP3)
-		
-		ADD8to16(ZP1,grid)
-		
-skip4:
-
-paint:	lda #DOT
-		ldy #0
-		sta (ZP1),y
-
-}
-
-.macro MAZE_dot1(grid){
-/*
-slow, abandoned
-arguments: grid 16 bit, address of x and y component
-*/
-.const DOT = $20
-		MOV16(maze_memory_alloc, ZP1)
-		lda ZP1
-		ldy grid+1		//grid.y
-loop:	clc
-		adc #$28
-		sta ZP1
-		bcc skip
-		inc ZP2
-skip:	dey
-		bne loop
-		clc
-		adc grid		//grid.x
-		sta ZP1
-		bcc skip2
-		inc ZP2
-skip2:	lda #DOT
-		ldy #0
-		sta (ZP1),y
+			lda #DOT
+			ldy #0
+			sta (ZP1),y
 }
 
 .macro MAZE(start){
@@ -126,14 +82,19 @@ arguments: start: grid(x,y)
 */
 		.const WALL = $E0
 		MAZE_fill(WALL)
-
-begin:	MAZE_dot(start)
+		MAZE_dot(start)
+		//jsr carve_maze
 }
+
+//--- SUBS -------------------------------------------------------
+
+
 
 
 //-----------------------DATA-------------------------------
 
 MAZE_memory: 		* = MAZE_memory "MAZE Memory"
 maze_memory_alloc:	.word $0040 	//screen by default, safe
+maze_start:			.word 0
 
 //----------------------------------------------------------------	

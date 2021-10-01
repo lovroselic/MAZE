@@ -82,8 +82,8 @@
 08ae: ad db 09  -         lda grid+1		//grid.y
 08b1: 85 fd     -         sta ZP3
 08b3: a0 03     - dot:    ldy #03
-08b5: 06 fd     - mul8:   asl ZP3
-08b7: 26 fe     -         rol ZP4
+08b5: 06 fd     - mul8:   asl X
+08b7: 26 fe     -         rol X+1	
 08b9: 88        -         dey
 08ba: d0 f9     -         bne mul8
 08bc: 18        -         clc
@@ -97,8 +97,8 @@
 08ca: 65 fe     -         adc Y+1
 08cc: 85 fc     -         sta X+1	
 08ce: a0 02     -         ldy #02	
-08d0: 06 fd     - mul32:  asl ZP3
-08d2: 26 fe     -         rol ZP4
+08d0: 06 fd     - mul32:  asl X
+08d2: 26 fe     -         rol X+1	
 08d4: 88        -         dey
 08d5: d0 f9     -         bne mul32
 08d7: 18        -         clc
