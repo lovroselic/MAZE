@@ -15,7 +15,13 @@ memory:
 //--- SUBS -------------------------------------------------------
 
 //-----------------------DATA-------------------------------
-//#name#: 		* = #name# "#name#"
+Grid_Constants: 		* = Grid_Constants "Grid_Constants"
+BASIC_DIRS:
+UP:			.byte 	0, -1
+DOWN:		.byte 	0, 1
+LEFT:		.byte	-1, 0
+RIGHT:		.byte 	1,0
+
 
 
 //-----------------------MACROS-----------------------------

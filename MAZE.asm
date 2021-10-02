@@ -5,7 +5,7 @@
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.02.00"
+.const VER	= "0.02.01"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -58,10 +58,19 @@ init:
 
 		WaitAnyKey()
 		//debug
-		//Console8(startX)
-		//Comma()
-		//Console8(startY)
-		//EndLine()
+		Console8(startX)
+		Comma()
+		Console8(startY)
+		EndLine()
+		EndLine()
+		//debug candidates
+		.for(var i = 0;i<4;i++){
+			.var t = candidates + 2*i
+			Console8(t)
+			Comma()
+			Console8(t+1)
+			EndLine()
+		}
 		
 		
 end:
@@ -70,7 +79,7 @@ end:
 
 
 //-----------------------SUBS-------------------------------
-subs:	* = subs "Subroutines"
+imports:	* = imports "Imports"
 
 //------ IMPORTS ----
 
@@ -82,6 +91,9 @@ subs:	* = subs "Subroutines"
 #import "Include\LS_Random.asm"
 #import "Include\LS_GRID.asm"
 #import "Include\LS_MAZE.asm"
+
+//-----------------------SUBS-------------------------------
+subs:	* = subs "Subroutines"
 
 //------ INTERRUPT ----
 irqcode:

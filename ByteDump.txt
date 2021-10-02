@@ -24,9 +24,9 @@
 082c: 8d 11 d0  -         sta CONTROL_REGISTER1
 082f: a9 32     -         lda #startRaster
 0831: 8d 12 d0  -         sta RASTER_COUNTER
-0834: a9 a4     -         lda #<address
+0834: a9 7e     -         lda #<address
 0836: 8d 14 03  -         sta IRQVEC
-0839: a9 09     -         lda #>address
+0839: a9 0a     -         lda #>address
 083b: 8d 15 03  -         sta	IRQVEC+1
 083e: 58        -         cli
 083f: a9 ff     - begin,init:lda #$ff
@@ -42,9 +42,9 @@
 0856: 85 fb     -         sta ZP1
 0858: a9 00     -         lda #>start
 085a: 85 fc     -         sta ZP2
-085c: 20 d7 08  -         jsr rnd_XY
+085c: 20 68 09  -         jsr rnd_XY
 085f: a5 14     -         lda X
-0861: 8d da 09  -         sta Y
+0861: 8d b4 0a  -         sta Y
 0864: a9 17     -         lda #<end	
 0866: 85 fd     -         sta ZP3
 0868: a9 00     -         lda #>end
@@ -53,186 +53,286 @@
 086e: 85 fb     -         sta ZP1
 0870: a9 00     -         lda #>start
 0872: 85 fc     -         sta ZP2
-0874: 20 d7 08  -         jsr rnd_XY
+0874: 20 68 09  -         jsr rnd_XY
 0877: a5 14     -         lda X
-0879: 8d db 09  -         sta Y
-087c: a9 00     -         lda #<memory
-087e: 8d a0 09  -         sta maze_memory_alloc
-0881: a9 04     -         lda #>memory
-0883: 8d a1 09  -         sta maze_memory_alloc+1
-0886: ad da 09  -         lda X
-0889: 8d a2 09  -         sta Y
-088c: ad db 09  -         lda X + 1
-088f: 8d a3 09  -         sta Y + 1
-0892: 20 99 09  -         jsr MAZE
-0895: a5 c5     - key:    lda LSTX		//get character in A
-0897: c9 40     -         cmp #64			//no key
-0899: f0 fa     -         beq key
-089b: a5 c5     - end,key:lda LSTX		//get character in A
-089d: c9 40     -         cmp #64			//no key
-089f: f0 fa     -         beq key
-08a1: 60        -         rts
+0879: 8d b5 0a  -         sta Y
+087c: a9 00     -         lda #<addr
+087e: 8d 67 0a  -         sta X
+0881: a9 04     -         lda #>addr
+0883: 8d 68 0a  -         sta X+1
+0886: ad b4 0a  -         lda X
+0889: 8d 69 0a  -         sta Y
+088c: ad b5 0a  -         lda X + 1
+088f: 8d 6a 0a  -         sta Y + 1
+0892: a9 00     -         lda #<addr
+0894: 8d 6b 0a  -         sta X
+0897: a9 c0     -         lda #>addr
+0899: 8d 6c 0a  -         sta X+1
+089c: 20 5d 0a  -         jsr MAZE
+089f: a5 c5     - key:    lda LSTX		//get character in A
+08a1: c9 40     -         cmp #64			//no key
+08a3: f0 fa     -         beq key
+08a5: a9 00     -         lda #00
+08a7: ae b4 0a  -         ldx x
+08aa: 20 cd bd  -         jsr PRINT_INT
+08ad: a9 2c     -         lda #CHR_Comma
+08af: 20 d2 ff  -         jsr CHROUT
+08b2: a9 00     -         lda #00
+08b4: ae b5 0a  -         ldx x
+08b7: 20 cd bd  -         jsr PRINT_INT
+08ba: a9 0d     -         lda #CHR_Return
+08bc: 20 d2 ff  -         jsr CHROUT
+08bf: a9 0d     -         lda #CHR_Return
+08c1: 20 d2 ff  -         jsr CHROUT
+08c4: a9 00     -         lda #00
+08c6: ae 6d 0a  -         ldx x
+08c9: 20 cd bd  -         jsr PRINT_INT
+08cc: a9 2c     -         lda #CHR_Comma
+08ce: 20 d2 ff  -         jsr CHROUT
+08d1: a9 00     -         lda #00
+08d3: ae 6e 0a  -         ldx x
+08d6: 20 cd bd  -         jsr PRINT_INT
+08d9: a9 0d     -         lda #CHR_Return
+08db: 20 d2 ff  -         jsr CHROUT
+08de: a9 00     -         lda #00
+08e0: ae 6f 0a  -         ldx x
+08e3: 20 cd bd  -         jsr PRINT_INT
+08e6: a9 2c     -         lda #CHR_Comma
+08e8: 20 d2 ff  -         jsr CHROUT
+08eb: a9 00     -         lda #00
+08ed: ae 70 0a  -         ldx x
+08f0: 20 cd bd  -         jsr PRINT_INT
+08f3: a9 0d     -         lda #CHR_Return
+08f5: 20 d2 ff  -         jsr CHROUT
+08f8: a9 00     -         lda #00
+08fa: ae 71 0a  -         ldx x
+08fd: 20 cd bd  -         jsr PRINT_INT
+0900: a9 2c     -         lda #CHR_Comma
+0902: 20 d2 ff  -         jsr CHROUT
+0905: a9 00     -         lda #00
+0907: ae 72 0a  -         ldx x
+090a: 20 cd bd  -         jsr PRINT_INT
+090d: a9 0d     -         lda #CHR_Return
+090f: 20 d2 ff  -         jsr CHROUT
+0912: a9 00     -         lda #00
+0914: ae 73 0a  -         ldx x
+0917: 20 cd bd  -         jsr PRINT_INT
+091a: a9 2c     -         lda #CHR_Comma
+091c: 20 d2 ff  -         jsr CHROUT
+091f: a9 00     -         lda #00
+0921: ae 74 0a  -         ldx x
+0924: 20 cd bd  -         jsr PRINT_INT
+0927: a9 0d     -         lda #CHR_Return
+0929: 20 d2 ff  -         jsr CHROUT
+092c: a5 c5     - end,key:lda LSTX		//get character in A
+092e: c9 40     -         cmp #64			//no key
+0930: f0 fa     -         beq key
+0932: 60        -         rts
 
-[Subroutines]
-08a2: 20 d2 ff  - subs,printSequence:jsr CHROUT
-08a5: ca        -         dex
-08a6: d0 fa     -         bne printSequence
-08a8: 60        -         rts
-08a9: 86 fb     - printString:stx ZP1			//lo
-08ab: 84 fc     -         sty	ZP2			//hi
-08ad: a0 00     - next:   ldy #$00
-08af: b1 fb     -         lda (ZP1),y		//load character
-08b1: c9 00     -         cmp #$00
-08b3: f0 0d     -         beq	out			//null terminator
-08b5: 20 d2 ff  -         jsr CHROUT
-08b8: 18        -         clc
-08b9: e6 fb     -         inc	ZP1
-08bb: d0 f0     -         bne	next
-08bd: e6 fc     -         inc ZP2
-08bf: 4c ad 08  -         jmp next
-08c2: 60        - out:    rts
-08c3: 86 fb     - lenString:stx ZP1			//lo
-08c5: 84 fc     -         sty	ZP2			//hi
-08c7: a0 00     -         ldy #$00		
-08c9: 84 fd     -         sty ZP3			//counter
-08cb: b1 fb     - next:   lda (ZP1),y		//load character
-08cd: c9 00     -         cmp #$00
-08cf: f0 04     -         beq	out			//null terminator
-08d1: c8        -         iny
-08d2: 4c cb 08  -         jmp next
-08d5: 98        - out:    tya
-08d6: 60        -         rts
-08d7: a9 00     - rnd_XY: lda #00
-08d9: 20 9a e0  -         jsr RND
-08dc: e6 fd     -         inc ZP3
-08de: d0 02     -         bne skip1
-08e0: e6 fe     -         inc ZP4
-08e2: a5 fd     - skip1:  lda ZP3
-08e4: 38        -         sec
-08e5: e5 fb     -         sbc ZP1
-08e7: 85 fd     -         sta ZP3
-08e9: a5 fe     -         lda ZP4
-08eb: e5 fc     -         sbc ZP2
-08ed: 85 fe     -         sta ZP4			
-08ef: a4 fd     - toFloat:ldy ZP3
-08f1: a5 fe     -         lda ZP4
-08f3: 20 91 b3  -         jsr GIVAYF //A(h),Y(L) - FAC
-08f6: a2 1d     -         ldx #<flt
-08f8: a0 09     -         ldy #>flt
-08fa: 20 d4 bb  -         jsr MOVMF	//store FAC to flt
-08fd: a9 7f     -         lda #$7f
-08ff: 20 9a e0  -         jsr RND
-0902: a9 1d     -         lda #<flt
-0904: a0 09     -         ldy #>flt
-0906: 20 28 ba  -         jsr FMULT
-0909: 20 cc bc  -         jsr FAINT
-090c: 20 bf b1  -         jsr AYINT
-090f: a5 65     -         lda $65			
-0911: 18        -         clc
-0912: 65 fb     -         adc ZP1
-0914: 85 14     -         sta WINT
-0916: a5 64     -         lda $64
-0918: 65 fc     -         adc ZP2
-091a: 85 15     -         sta WINT+1
-091c: 60        - over:   rts
+[Imports]
+0933: 20 d2 ff  - imports,printSequence:jsr CHROUT
+0936: ca        -         dex
+0937: d0 fa     -         bne printSequence
+0939: 60        -         rts
+093a: 86 fb     - printString:stx ZP1			//lo
+093c: 84 fc     -         sty	ZP2			//hi
+093e: a0 00     - next:   ldy #$00
+0940: b1 fb     -         lda (ZP1),y		//load character
+0942: c9 00     -         cmp #$00
+0944: f0 0d     -         beq	out			//null terminator
+0946: 20 d2 ff  -         jsr CHROUT
+0949: 18        -         clc
+094a: e6 fb     -         inc	ZP1
+094c: d0 f0     -         bne	next
+094e: e6 fc     -         inc ZP2
+0950: 4c 3e 09  -         jmp next
+0953: 60        - out:    rts
+0954: 86 fb     - lenString:stx ZP1			//lo
+0956: 84 fc     -         sty	ZP2			//hi
+0958: a0 00     -         ldy #$00		
+095a: 84 fd     -         sty ZP3			//counter
+095c: b1 fb     - next:   lda (ZP1),y		//load character
+095e: c9 00     -         cmp #$00
+0960: f0 04     -         beq	out			//null terminator
+0962: c8        -         iny
+0963: 4c 5c 09  -         jmp next
+0966: 98        - out:    tya
+0967: 60        -         rts
+0968: a9 00     - rnd_XY: lda #00
+096a: 20 9a e0  -         jsr RND
+096d: e6 fd     -         inc ZP3
+096f: d0 02     -         bne skip1
+0971: e6 fe     -         inc ZP4
+0973: a5 fd     - skip1:  lda ZP3
+0975: 38        -         sec
+0976: e5 fb     -         sbc ZP1
+0978: 85 fd     -         sta ZP3
+097a: a5 fe     -         lda ZP4
+097c: e5 fc     -         sbc ZP2
+097e: 85 fe     -         sta ZP4			
+0980: a4 fd     - toFloat:ldy ZP3
+0982: a5 fe     -         lda ZP4
+0984: 20 91 b3  -         jsr GIVAYF //A(h),Y(L) - FAC
+0987: a2 ae     -         ldx #<flt
+0989: a0 09     -         ldy #>flt
+098b: 20 d4 bb  -         jsr MOVMF	//store FAC to flt
+098e: a9 7f     -         lda #$7f
+0990: 20 9a e0  -         jsr RND
+0993: a9 ae     -         lda #<flt
+0995: a0 09     -         ldy #>flt
+0997: 20 28 ba  -         jsr FMULT
+099a: 20 cc bc  -         jsr FAINT
+099d: 20 bf b1  -         jsr AYINT
+09a0: a5 65     -         lda $65			
+09a2: 18        -         clc
+09a3: 65 fb     -         adc ZP1
+09a5: 85 14     -         sta WINT
+09a7: a5 64     -         lda $64
+09a9: 65 fc     -         adc ZP2
+09ab: 85 15     -         sta WINT+1
+09ad: 60        - over:   rts
 
 [Data RND]
-091d: 00 00 00 00 00                                   - dataRND,flt:.byte 0,0,0,0,0
-0922: ad a0 09  - MAZE_FILL:lda X
-0925: 85 fb     -         sta Y
-0927: ad a1 09  -         lda X + 1
-092a: 85 fc     -         sta Y + 1
-092c: a9 e0     -         lda	#WALL
-092e: a2 04     -         ldx #4
-0930: a0 00     - block:  ldy #0
-0932: 91 fb     - fill:   sta (ZP1),y
-0934: c8        -         iny
-0935: d0 fb     -         bne fill
-0937: e6 fc     -         inc ZP2
-0939: ca        -         dex
-093a: d0 f4     -         bne block
-093c: 60        -         rts
-093d: ad a0 09  - MAZE_DOT:lda X
-0940: 85 fb     -         sta Y
-0942: ad a1 09  -         lda X + 1
-0945: 85 fc     -         sta Y + 1
-0947: a9 00     -         lda #0
-0949: 85 fe     -         sta ZP4				//clear, we don't know what is there
-094b: ad a3 09  -         lda maze_start+1		//grid.y
-094e: 85 fd     -         sta ZP3
-0950: a0 03     -         ldy #03
-0952: 06 fd     - mul8:   asl X
-0954: 26 fe     -         rol X+1	
-0956: 88        -         dey
-0957: d0 f9     -         bne mul8
-0959: 18        -         clc
-095a: a5 fb     -         lda X
-095c: 65 fd     -         adc Y
-095e: 85 fb     -         sta X
-0960: 90 02     -         bcc skip
-0962: e6 fc     -         inc X+1
-0964: 18        - skip:   clc
-0965: a5 fc     -         lda X+1
-0967: 65 fe     -         adc Y+1
-0969: 85 fc     -         sta X+1	
-096b: a0 02     -         ldy #02	
-096d: 06 fd     - mul32:  asl X
-096f: 26 fe     -         rol X+1	
-0971: 88        -         dey
-0972: d0 f9     -         bne mul32
-0974: 18        -         clc
-0975: a5 fb     -         lda X
-0977: 65 fd     -         adc Y
-0979: 85 fb     -         sta X
-097b: 90 02     -         bcc skip
-097d: e6 fc     -         inc X+1
-097f: 18        - skip:   clc
-0980: a5 fc     -         lda X+1
-0982: 65 fe     -         adc Y+1
-0984: 85 fc     -         sta X+1	
-0986: 18        -         clc
-0987: a5 fb     -         lda X
-0989: 6d a2 09  -         adc y	
-098c: 85 fb     -         sta X
-098e: 90 02     -         bcc out+2
-0990: e6 fc     - out:    inc X+1
-0992: a9 20     -         lda #DOT
-0994: a0 00     -         ldy #0
-0996: 91 fb     -         sta (ZP1),y
-0998: 60        -         rts
-0999: 20 22 09  - MAZE:   jsr MAZE_FILL
-099c: 20 3d 09  - outer,P_LOOP:jsr MAZE_DOT
-099f: 60        - S_LOOP,quit:rts
+09ae: 00 00 00 00 00                                   - dataRND,flt:.byte 0,0,0,0,0
+
+[Grid_Constants]
+09b3: 00 ff     - Grid_Constants,BASIC_DIRS,UP:.byte 	0, -1
+09b5: 00 01     - DOWN:   .byte 	0, 1
+09b7: ff 00     - LEFT:   .byte	-1, 0
+09b9: 01 00     - RIGHT:  .byte 	1,0
+09bb: ad 67 0a  - MAZE_FILL:lda X
+09be: 85 fb     -         sta Y
+09c0: ad 68 0a  -         lda X + 1
+09c3: 85 fc     -         sta Y + 1
+09c5: a9 e0     -         lda	#WALL
+09c7: a2 04     -         ldx #4
+09c9: a0 00     - block:  ldy #0
+09cb: 91 fb     - fill:   sta (ZP1),y
+09cd: c8        -         iny
+09ce: d0 fb     -         bne fill
+09d0: e6 fc     -         inc ZP2
+09d2: ca        -         dex
+09d3: d0 f4     -         bne block
+09d5: 60        -         rts
+09d6: ad 67 0a  - MAZE_DOT:lda X
+09d9: 85 fb     -         sta Y
+09db: ad 68 0a  -         lda X + 1
+09de: 85 fc     -         sta Y + 1
+09e0: a9 00     -         lda #0
+09e2: 85 fe     -         sta ZP4				
+09e4: ad 6a 0a  -         lda maze_start+1		
+09e7: 85 fd     -         sta ZP3
+09e9: a0 03     -         ldy #03
+09eb: 06 fd     - mul8:   asl X
+09ed: 26 fe     -         rol X+1	
+09ef: 88        -         dey
+09f0: d0 f9     -         bne mul8
+09f2: 18        -         clc
+09f3: a5 fb     -         lda X
+09f5: 65 fd     -         adc Y
+09f7: 85 fb     -         sta X
+09f9: 90 02     -         bcc skip
+09fb: e6 fc     -         inc X+1
+09fd: 18        - skip:   clc
+09fe: a5 fc     -         lda X+1
+0a00: 65 fe     -         adc Y+1
+0a02: 85 fc     -         sta X+1	
+0a04: a0 02     -         ldy #02	
+0a06: 06 fd     - mul32:  asl X
+0a08: 26 fe     -         rol X+1	
+0a0a: 88        -         dey
+0a0b: d0 f9     -         bne mul32
+0a0d: 18        -         clc
+0a0e: a5 fb     -         lda X
+0a10: 65 fd     -         adc Y
+0a12: 85 fb     -         sta X
+0a14: 90 02     -         bcc skip
+0a16: e6 fc     -         inc X+1
+0a18: 18        - skip:   clc
+0a19: a5 fc     -         lda X+1
+0a1b: 65 fe     -         adc Y+1
+0a1d: 85 fc     -         sta X+1	
+0a1f: 18        -         clc
+0a20: a5 fb     -         lda X
+0a22: 6d 69 0a  -         adc y	
+0a25: 85 fb     -         sta X
+0a27: 90 02     -         bcc out+2
+0a29: e6 fc     - out:    inc X+1
+0a2b: a9 20     -         lda #DOT
+0a2d: a0 00     -         ldy #0
+0a2f: 91 fb     -         sta (ZP1),y
+0a31: 60        -         rts
+0a32: d8        - POINTERS_FROM_START:cld
+0a33: a9 6d     -         lda #<addr
+0a35: 85 fb     -         sta X
+0a37: a9 0a     -         lda #>addr
+0a39: 85 fc     -         sta X+1
+0a3b: a9 b3     -         lda #<addr
+0a3d: 85 fd     -         sta X
+0a3f: a9 09     -         lda #>addr
+0a41: 85 fe     -         sta X+1
+0a43: a2 03     -         ldx #03
+0a45: 8a        - add:    txa
+0a46: 0a        -         asl
+0a47: a8        -         tay		//y= (x-1) *2; offset
+0a48: 18        -         clc
+0a49: ad 69 0a  -         lda maze_start
+0a4c: 71 fd     -         adc (ZP3),y
+0a4e: 91 fb     -         sta (ZP1),y
+0a50: c8        -         iny
+0a51: 18        -         clc
+0a52: ad 6a 0a  -         lda maze_start+1
+0a55: 71 fd     -         adc (ZP3),y
+0a57: 91 fb     -         sta (ZP1),y
+0a59: ca        -         dex
+0a5a: 10 e9     -         bpl add
+0a5c: 60        -         rts
+0a5d: 20 bb 09  - MAZE:   jsr MAZE_FILL
+0a60: 20 d6 09  - outer,P_LOOP:jsr MAZE_DOT
+0a63: 20 32 0a  -         jsr POINTERS_FROM_START
+0a66: 60        - S_LOOP,quit:rts
 
 [MAZE Memory]
-09a0: 40 00     - MAZE_memory,maze_memory_alloc:.word $0040 	//screen by default, safe
-09a2: 00 00     - maze_start:.word 0
-09a4: ad d9 09  - irqcode:lda modeflag
-09a7: f0 03     -         beq mode1
-09a9: 4c c1 09  -         jmp mode2
-09ac: a9 01     - mode1:  lda #$01
-09ae: 8d d9 09  -         sta modeflag
-09b1: a9 0e     -         lda #LIGHTBLUE
-09b3: 8d 20 d0  -         sta BORDER
-09b6: a9 32     -         lda #startRaster
-09b8: 8d 12 d0  -         sta RASTER_COUNTER
-09bb: 0e 19 d0  -         asl INTERRUPT_REQUEST_REGISTER
-09be: 4c 31 ea  -         jmp IRQOUT
-09c1: a9 00     - mode2:  lda #$00
-09c3: 8d d9 09  -         sta modeflag
-09c6: a9 06     -         lda #BLUE
-09c8: 8d 20 d0  -         sta BORDER
-09cb: a9 fa     -         lda #endRaster
-09cd: 8d 12 d0  -         sta RASTER_COUNTER
-09d0: 0e 19 d0  -         asl INTERRUPT_REQUEST_REGISTER
-09d3: 68        -         pla
-09d4: a8        -         tay
-09d5: 68        -         pla
-09d6: aa        -         tax
-09d7: 68        -         pla
-09d8: 40        -         rti
+0a67: 40 00     - MAZE_memory,maze_memory_alloc:.word $0040 	//screen by default, safe
+0a69: 00 00     - maze_start:.word 0
+0a6b: 00 00     - stack_pointer:.word 0
+0a6d: 00 00     - candidates:.fill 2,0
+0a6f: 00 00     -         .fill 2,0
+0a71: 00 00     -         .fill 2,0
+0a73: 00 00     -         .fill 2,0
+0a75: 00 00     - candidates_vectors:.fill 2,0
+0a77: 00 00     -         .fill 2,0
+0a79: 00 00     -         .fill 2,0
+0a7b: 00 00     -         .fill 2,0
+0a7d: 00        - candidates_length:.byte 0
+
+[Subroutines]
+0a7e: ad b3 0a  - subs,irqcode:lda modeflag
+0a81: f0 03     -         beq mode1
+0a83: 4c 9b 0a  -         jmp mode2
+0a86: a9 01     - mode1:  lda #$01
+0a88: 8d b3 0a  -         sta modeflag
+0a8b: a9 0e     -         lda #LIGHTBLUE
+0a8d: 8d 20 d0  -         sta BORDER
+0a90: a9 32     -         lda #startRaster
+0a92: 8d 12 d0  -         sta RASTER_COUNTER
+0a95: 0e 19 d0  -         asl INTERRUPT_REQUEST_REGISTER
+0a98: 4c 31 ea  -         jmp IRQOUT
+0a9b: a9 00     - mode2:  lda #$00
+0a9d: 8d b3 0a  -         sta modeflag
+0aa0: a9 06     -         lda #BLUE
+0aa2: 8d 20 d0  -         sta BORDER
+0aa5: a9 fa     -         lda #endRaster
+0aa7: 8d 12 d0  -         sta RASTER_COUNTER
+0aaa: 0e 19 d0  -         asl INTERRUPT_REQUEST_REGISTER
+0aad: 68        -         pla
+0aae: a8        -         tay
+0aaf: 68        -         pla
+0ab0: aa        -         tax
+0ab1: 68        -         pla
+0ab2: 40        -         rti
 
 [Data]
-09d9: 00        - text,data,modeflag:.byte 0
-09da: 00        - startX: .byte 0
-09db: 00        - startY: .byte 0
+0ab3: 00        - text,data,modeflag:.byte 0
+0ab4: 00        - startX: .byte 0
+0ab5: 00        - startY: .byte 0

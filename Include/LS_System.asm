@@ -95,4 +95,16 @@ result in X
 		bcc out+2
 out:	inc X+1
 }
+
+.macro SET_ADDR(addr,X){
+/*
+arguments: 
+	addr  	address
+	X 		storage location (pointer)	
+*/
+		lda #<addr
+		sta X
+		lda #>addr
+		sta X+1
+}
 //----------------------------------------------------------------	

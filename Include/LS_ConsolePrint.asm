@@ -73,7 +73,7 @@ return: none
 		tax
 		lda #00
 		jsr PRINT_INT
-		EndLine()
+		//EndLine()
 }
 .macro ConsoleA(){
 /*
