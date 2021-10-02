@@ -2,7 +2,7 @@
 //----------------------------------------------------------------			
 /*****************************************************************
 LS_MAZE.asm
-v0.03
+v0.04
 
 MAZE structs and methods
 
@@ -20,6 +20,10 @@ memory:
 .const DOT 		= $20
 .const STACK	= $C000
 .const DSIZE	= 4
+.const MAX_X	= 38
+.const MIN_X	= 1
+.const MAX_Y 	= 23
+.const MIN_Y 	= 1
 
 //-----------------------MACROS-----------------------------
 .macro INIT_MAZE(memory, start){
@@ -86,10 +90,11 @@ POINTERS_FROM_START:
 			cld
 			SET_ADDR(candidates, ZP1)
 			SET_ADDR(BASIC_DIRS, ZP3)
+			//calc candidates
 			ldx #03
 	add:	txa
 			asl
-			tay		//y= (x-1) *2; offset
+			tay		
 			//x
 			clc
 			lda maze_start
@@ -103,8 +108,61 @@ POINTERS_FROM_START:
 			sta (ZP1),y
 			dex
 			bpl add
+
+			//copy vectors
+			SET_ADDR(candidates_vectors, ZP1)
+			ldx #03
+	copy:	txa
+			asl
+			tay	
+			lda (ZP3),y
+			sta (ZP1),y
+			iny
+			lda (ZP3),y
+			sta (ZP1),y
+			dex
+			bpl copy
+			//
+			lda #04
+			sta candidates_length
 			rts
 			
+}
+FILTER_IF_OUT:
+{
+			cld
+			lda candidates_length
+			cmp #0
+			beq out
+			SET_ADDR(candidates, ZP1)
+
+			tax
+			dex
+	each:	txa
+			asl
+			tay
+			lda (ZP1),y	
+			cmp #MAX_X+1
+			bcs shift
+			cmp #MIN_X
+			bcc shift
+			//y
+			iny
+			lda (ZP1),y
+			cmp #MAX_Y+1
+			bcs shift
+			cmp #MIN_Y
+			bcc shift
+	cont:	dex
+			bpl each
+	out:	rts
+	shift:
+			stx tempX
+			//do shift
+			//
+			ldx tempX
+			jmp cont
+			//rts
 }
 
 //--- MAIN -------------------------------------------------------
@@ -115,6 +173,7 @@ outer:
 	P_LOOP:
 			jsr MAZE_DOT
 			jsr POINTERS_FROM_START
+			jsr FILTER_IF_OUT
 	S_LOOP:
 
 quit:
@@ -132,5 +191,7 @@ candidates:
 candidates_vectors:
 .for(var i=0; i<4; i++)		.fill 2,0
 candidates_length: 			.byte 0
+debug:						.text "DEBUG"
+							brk
 
 //----------------------------------------------------------------	
