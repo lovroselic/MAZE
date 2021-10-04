@@ -2,22 +2,25 @@
 	MAZE demo
 	in progress
 
+http://unusedino.de/ec64/technical/project64/mapping_c64.html
+https://www.c64-wiki.com/wiki/Zeropage
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.02.02"
+.const VER	= "0.02.03"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
-
+/*
 .disk [filename= "MAZE.d64", name = "MAZE"]
 {
 [name="MAZE", type="prg", segments="MAZE" ],
 }
-
+*/
 //------------------------BASIC-----------------------------
-
+/*
 .segment MAZE []
+*/
 #import "Include\LS_StandardBasicStart.asm"
 
 //-----------------------CONST-------------------------------
@@ -47,8 +50,16 @@ begin:
 init:
 		SetSIDforRandom()
 		RandomNumber(1, 38)
+		//debug
+		//lda #38
+		//sta WINT
+		//
 		MOV8(WINT,startX)
 		RandomNumber(1, 23)
+		//debug
+		//lda #23
+		//sta WINT
+		//
 		MOV8(WINT,startY)
 
 		INIT_MAZE(SCREEN, startX)

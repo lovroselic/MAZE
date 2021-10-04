@@ -60,30 +60,39 @@ out:		tya
 arguments: none
 return: none
 */
+		sta TEMPA1
 		lda #00
 		jsr PRINT_INT
-		EndLine()
+		lda TEMPA1
 } 
 .macro ConsoleY(){
 /*
 arguments: none
 return: none
 */
+		sta TEMPA1
+		sty TEMPY
+		stx TEMPX
 		tya
 		tax
 		lda #00
 		jsr PRINT_INT
-		//EndLine()
+		lda TEMPA1
+		ldy TEMPY
+		ldx TEMPX
 }
 .macro ConsoleA(){
 /*
 arguments: none
 return: none
 */
+		sta TEMPA1
+		stx TEMPX
 		tax
 		lda #00
 		jsr PRINT_INT
-		//EndLine()
+		lda TEMPA1
+		ldx TEMPX
 }
 .macro PrintSequence(char,repeat){
 /*
@@ -99,18 +108,26 @@ assume: 255 is max
 arguments: pointer to number (16 bit) A: HI, X: lo
 return: none
 */
+		sta TEMPA1
+		stx TEMPX
 		lda x+1
 		ldx x
 		jsr PRINT_INT
+		lda TEMPA1
+		ldx TEMPX
 } 
 .macro Console8(x){
 /*
 arguments: pointer to number (8 bit) A: HI, X: lo
 return: none
 */
+		sta TEMPA1
+		stx TEMPA2
 		lda #00
 		ldx x
 		jsr PRINT_INT
+		lda TEMPA1
+		ldx TEMPA2
 } 
 .macro Comma(){
 		lda #CHR_Comma
@@ -161,6 +178,8 @@ skip:	PrintText(text)
 arguments: pointer to memory
 return: none
 */
+		sta TEMPA1
+		stx TEMPX
 		lda #0
 		ldx x
 		jsr PRINT_INT
@@ -180,6 +199,8 @@ return: none
 		ldx x+3
 		jsr PRINT_INT
 		EndLine()
+		lda TEMPA1
+		ldx TEMPX
 }
 .macro CenterSequence(char, len){
 		lda #maxCOL

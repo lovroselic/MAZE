@@ -131,16 +131,17 @@ POINTERS_FROM_START:
 FILTER_IF_OUT:
 {
 			cld
+			SET_ADDR(candidates, ZP1)
 			lda candidates_length
 			cmp #0
 			beq out
-			SET_ADDR(candidates, ZP1)
-
+			
 			tax
 			dex
 	each:	txa
 			asl
 			tay
+			clc
 			lda (ZP1),y	
 			cmp #MAX_X+1
 			bcs shift
@@ -148,6 +149,7 @@ FILTER_IF_OUT:
 			bcc shift
 			//y
 			iny
+			clc
 			lda (ZP1),y
 			cmp #MAX_Y+1
 			bcs shift
@@ -157,12 +159,24 @@ FILTER_IF_OUT:
 			bpl each
 	out:	rts
 	shift:
-			stx tempX
-			//do shift
-			//
-			ldx tempX
+			stx TEMPX
+			//set index to VAR_A
+			stx VAR_A
+			//set length to VAR_B
+			MOV8(candidates_length, VAR_B)
+			//splice candidates at x
+			//y gets trashed after SPLICE!
+			sty VAR_D		//save y
+			SPLICE_ARRAY(candidates, 2)
+			ldy VAR_D		//restore y
+			MOV8(candidates_length, VAR_B)
+			//splice candidates_vectors at x
+			SPLICE_ARRAY(candidates_vectors, 2)
+			//dec array length
+			dec candidates_length
+
+			ldx TEMPX
 			jmp cont
-			//rts
 }
 
 //--- MAIN -------------------------------------------------------
@@ -191,7 +205,7 @@ candidates:
 candidates_vectors:
 .for(var i=0; i<4; i++)		.fill 2,0
 candidates_length: 			.byte 0
-debug:						.text "DEBUG"
+debug:						.text ". "
 							brk
 
 //----------------------------------------------------------------	

@@ -16,6 +16,102 @@ memory:
 
 //--- SUBS -------------------------------------------------------
 
+SPLICE:
+{
+
+			//length in VAR_B
+			//data size in VAR_C
+			//array start in (BV1)
+			cld
+			dec VAR_B	//array length - 1
+			ldy VAR_A	//index
+	loop:	cpy VAR_B
+			bcs out 	
+
+			ldx #0			//number of properties (data_size), start from 0
+
+			//from i+1
+	each:					//for each property in data_size
+			iny		
+			sty TEMPY
+
+			//recalc y as offset
+			lda	VAR_C 		//data size
+							//y has right value
+			jsr MUL_Y_A
+							//y <- y*datasize, a = hi byte
+			sty ZP0
+			txa
+			clc
+			adc ZP0
+			tay
+			//
+
+			lda (BV1),y
+			sta TEMPA1
+			
+			//to i
+			ldy TEMPY
+			dey
+			sty TEMPY
+
+			//recalc y as offset
+			lda	VAR_C 		//data size
+							//y has right value
+			jsr MUL_Y_A
+							//y <- y*datasize, a = hi byte
+			sty ZP0
+			txa
+			clc
+			adc ZP0
+			tay
+			//
+
+			lda TEMPA1
+			sta (BV1),y
+			inx
+			cpx VAR_C		//all props? less than VAR_C ?
+			ldy TEMPY
+			bcc each
+
+			iny
+			jmp loop
+	out: 	rts
+
+}
+
+/*****************************************************************/
+
+MUL_Y_A:
+{
+/**
+	acc: multiplier
+	Y: muplitplicant
+	return: product in  acc(hi) and y(lo)
+*/
+
+multiply:	cpy #00
+			beq end
+			dey
+			sty mod+1
+			lsr
+			sta ZP0
+			lda #00
+			ldy #$08
+loop:		bcc skip
+mod:		adc #0
+skip:		ror
+			ror ZP0
+			dey
+			bne loop
+			ldy ZP0
+			rts
+end:		tya
+			rts
+}
+
+/*****************************************************************/
+
 //--- MACRO ------------------------------------------------------
 .macro StringToInt8(pointer){
 /*
@@ -107,9 +203,25 @@ arguments:
 		lda #>addr
 		sta X+1
 }
+
+.macro SPLICE_ARRAY(which, data_size){
+/*
+arguments: 
+	which: pointer to array -> BV1
+	data_size: VAR_C
+implied:
+	index: where to remove one element VAR_A
+	length of array: VAR_B
+*/
+		SET_ADDR(which, BV1)
+		lda #data_size
+		sta VAR_C
+		jsr SPLICE
+
+}
 //-----------------------DATA-------------------------------
 SYS_data: 		* = SYS_data "SYSTEM_data"
-tempX:	.byte 0
-tempY:	.byte 0
+//tempX:	.byte 0
+//tempY:	.byte 0
 //----------------------------------------------------------------	
 
