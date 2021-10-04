@@ -7,7 +7,7 @@ https://www.c64-wiki.com/wiki/Zeropage
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.02.03"
+.const VER	= "0.02.04"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -67,14 +67,17 @@ init:
 		jsr MAZE
 		//MAZE(startX)
 
-		WaitAnyKey()
+		//WaitAnyKey()
 		//debug
+		/*
 		Console8(startX)
 		Comma()
 		Console8(startY)
 		EndLine()
 		EndLine()
+		*/
 		//debug candidates
+		/*
 		.for(var i = 0;i<4;i++){
 			.var t = candidates + 2*i
 			Console8(t)
@@ -82,6 +85,7 @@ init:
 			Console8(t+1)
 			EndLine()
 		}
+		*/
 		
 		
 end:

@@ -14,6 +14,7 @@ memory:
 #import "LS_System.asm"
 #import "LS_ConsolePrint.asm"
 #import "LS_GRID.asm"
+#import "LS_Random.asm"
 //-----------------------CONST-----------------------------------
 
 .const WALL 	= $E0
@@ -26,6 +27,7 @@ memory:
 .const MIN_Y 	= 1
 
 //-----------------------MACROS-----------------------------
+
 .macro INIT_MAZE(memory, start){
 /*
 arguments: memory: 	memory address of where to create maze
@@ -37,6 +39,41 @@ arguments: memory: 	memory address of where to create maze
 	SET_ADDR(memory, maze_memory_alloc)
 	MOV16(start, maze_start)
 	SET_ADDR(STACK, stack_pointer)
+
+}
+
+.macro CALC_GRID_LOCATION(grid){
+/**
+	arguments,
+		grid as grid.x, grid.y = grid.x + 1
+
+	assumes:
+		maze_memory_alloc in ZP1
+	
+	destroys: 
+		ZP1,ZP3
+		y,a
+	result:
+		ZP1 holds address of grid
+
+ */
+
+			lda #0
+			sta ZP4				
+			lda grid+1		
+			sta ZP3
+		
+			ldy #03
+mul8:		ASL16(ZP3)
+			dey
+			bne mul8
+			ADD16(ZP1, ZP3)
+			ldy #02	
+mul32:		ASL16(ZP3)
+			dey
+			bne mul32
+			ADD16(ZP1, ZP3)	
+			ADD8to16(ZP1, grid)
 
 }
 
@@ -58,32 +95,21 @@ fill:
 			rts
 }
 
+/*****************************************************************/
+
 MAZE_DOT:
 /** assumes start grid set */
 {
 			MOV16(maze_memory_alloc, ZP1)
-			lda #0
-			sta ZP4				
-			lda maze_start+1		
-			sta ZP3
-		
-			ldy #03
-mul8:		ASL16(ZP3)
-			dey
-			bne mul8
-			ADD16(ZP1,ZP3)
-			ldy #02	
-mul32:		ASL16(ZP3)
-			dey
-			bne mul32
-			ADD16(ZP1,ZP3)	
-			ADD8to16(ZP1,maze_start)
+			CALC_GRID_LOCATION(maze_start)
 
 			lda #DOT
 			ldy #0
 			sta (ZP1),y
 			rts
 }
+
+/*****************************************************************/
 
 POINTERS_FROM_START:
 {
@@ -128,6 +154,9 @@ POINTERS_FROM_START:
 			rts
 			
 }
+
+/*****************************************************************/
+
 FILTER_IF_OUT:
 {
 			cld
@@ -142,6 +171,7 @@ FILTER_IF_OUT:
 			asl
 			tay
 			clc
+			//x
 			lda (ZP1),y	
 			cmp #MAX_X+1
 			bcs shift
@@ -159,35 +189,116 @@ FILTER_IF_OUT:
 			bpl each
 	out:	rts
 	shift:
-			stx TEMPX
-			//set index to VAR_A
-			stx VAR_A
-			//set length to VAR_B
-			MOV8(candidates_length, VAR_B)
-			//splice candidates at x
-			//y gets trashed after SPLICE!
-			sty VAR_D		//save y
-			SPLICE_ARRAY(candidates, 2)
-			ldy VAR_D		//restore y
-			MOV8(candidates_length, VAR_B)
-			//splice candidates_vectors at x
-			SPLICE_ARRAY(candidates_vectors, 2)
-			//dec array length
-			dec candidates_length
+			stx TEMPX									//save x							
+			stx VAR_A									//set index to VAR_A
+			MOV8(candidates_length, VAR_B)				//set length to VAR_B
+			sty VAR_D									//save y
+			SPLICE_ARRAY(candidates, 2)					//splice candidates at x
+			ldy VAR_D									//restore y
+			MOV8(candidates_length, VAR_B)				//set length to VAR_B, as splice is changing that
+			SPLICE_ARRAY(candidates_vectors, 2)			//splice candidates_vectors at x
+			dec candidates_length						//dec array length
+			ldx TEMPX									//restore x
+			jmp cont									//return to loop
+}
 
-			ldx TEMPX
-			jmp cont
+/*****************************************************************/
+
+FILTER_IF_DOT:
+{
+			cld
+			SET_ADDR(candidates, BV1)
+			lda candidates_length
+			cmp #0
+			beq out
+
+			tax											//number of grids yet to check
+			dex
+		//checking each remaining grid
+
+each:		txa
+			asl
+			tay
+			//x
+			lda (BV1),y
+			sta grid_pointer
+			//y
+			iny
+			lda (BV1),y
+			sta grid_pointer+1
+			MOV16(maze_memory_alloc, ZP1)
+			CALC_GRID_LOCATION(grid_pointer)			//grid address now in ZP1
+			
+			//Console16(ZP1)
+			//EndLine()
+			ldy #0
+			lda (ZP1),y
+			cmp #DOT
+			beq shift
+			
+		//end of grid check
+	cont:	dex
+			bpl each
+	out:	rts
+	shift:
+			stx TEMPX									//save x
+			stx VAR_A									//set index to VAR_A
+			MOV8(candidates_length, VAR_B)				//set length to VAR_B
+			sty VAR_D									//save y
+			SPLICE_ARRAY(candidates, 2)					//splice candidates at x
+			ldy VAR_D									//restore y
+			MOV8(candidates_length, VAR_B)				//set length to VAR_B, as splice is changing that
+			SPLICE_ARRAY(candidates_vectors, 2)			//splice candidates_vectors at x
+			dec candidates_length						//dec array length
+			ldx TEMPX									//restore x
+			jmp cont									//return to loop
 }
 
 //--- MAIN -------------------------------------------------------
 MAZE:
 {
-			jsr MAZE_FILL
+				jsr MAZE_FILL
 outer:
+	/** single branch loop */
 	P_LOOP:
-			jsr MAZE_DOT
-			jsr POINTERS_FROM_START
-			jsr FILTER_IF_OUT
+				jsr MAZE_DOT
+				jsr POINTERS_FROM_START
+				jsr FILTER_IF_OUT
+				jsr FILTER_IF_DOT
+															//select candidate
+				lda candidates_length						//check how many we have
+				cmp #00										//if zero break;
+				beq S_LOOP									//goto stack loop
+				cmp #01										//if just one
+				bcs then									//if not go to else/then
+				lda #0										//index in A									
+				jmp skip_else
+		then:
+				//Random4()									//rnd index in A (0 - 3)
+
+				lda candidates_length
+				tax
+				dex
+				stx ZP0
+				RandomNumber(0, ZP0)
+				//Console8(ZP0)
+				//EndLine()
+				lda WINT
+
+		skip_else:
+				asl 										//datasize=2	
+				tay											//offset in y
+				SET_ADDR(candidates, BV1)
+															//selected candidate to maze_start 
+				lda (BV1),y
+				sta maze_start
+				iny
+				lda (BV1),y
+				sta maze_start+1
+			
+				jmp P_LOOP
+	
+	/** take from stack */
 	S_LOOP:
 
 quit:
@@ -199,6 +310,7 @@ quit:
 MAZE_memory: 				* = MAZE_memory "MAZE Memory"
 maze_memory_alloc:			.word $0040 	//screen by default, safe
 maze_start:					.word 0
+grid_pointer:				.word 0
 stack_pointer:				.word 0
 candidates:
 .for(var i=0; i<4; i++)		.fill 2,0

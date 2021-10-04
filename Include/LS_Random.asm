@@ -91,7 +91,7 @@ result: A (0,1)
 }
 .macro Random4(){
 /*
-result: A (0,1)
+result: A (0,3)
 */
 		lda #0
 		jsr RND
