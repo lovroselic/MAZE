@@ -7,7 +7,7 @@ https://www.c64-wiki.com/wiki/Zeropage
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.02.05"
+.const VER	= "0.02.06"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------

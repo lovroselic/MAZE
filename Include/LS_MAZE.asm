@@ -254,6 +254,25 @@ each:		txa
 			jmp cont									//return to loop
 }
 
+/*****************************************************************/
+
+PUSH_REST_ON_STACK:
+{
+														//splice selected grid out of candidates
+			lda ZP0										//index was stored in ZP0
+			sta VAR_A									//set index to VAR_A
+			MOV8(candidates_length, VAR_B)				//set length to VAR_B
+			SPLICE_ARRAY(candidates, 2)					//splice candidates at x, uses BV1
+			MOV8(candidates_length, VAR_B)				//set length to VAR_B, as splice is changing that
+			SPLICE_ARRAY(candidates_vectors, 2)			//splice candidates_vectors at x, uses BV1
+			dec candidates_length						//dec array length
+														//copy remaining on stack
+
+
+
+	out:	rts		
+}
+
 //--- MAIN -------------------------------------------------------
 MAZE:
 {
@@ -283,6 +302,7 @@ outer:
 				lda WINT
 
 		skip_else:
+				sta ZP0										//store index in ZP0	
 				asl 										//datasize=2	
 				tay											//offset in y
 				SET_ADDR(candidates, BV1)
@@ -292,8 +312,14 @@ outer:
 				iny
 				lda (BV1),y
 				sta maze_start+1
+															//store remaining candidates on STACK
+				lda candidates_length
+				cmp #02										//if there are 2 or more, selected has not been discarded yet
+				bcc repeat_P								//no, repeat loop
+															//yes
+				jsr PUSH_REST_ON_STACK													
 			
-				jmp P_LOOP
+	repeat_P:	jmp P_LOOP
 	
 	/** take from stack */
 	S_LOOP:
