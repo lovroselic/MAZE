@@ -15,6 +15,7 @@ memory:
 #import "LS_ConsolePrint.asm"
 #import "LS_GRID.asm"
 #import "LS_Random.asm"
+#import "LS_Keyboard.asm"
 //-----------------------CONST-----------------------------------
 
 .const WALL 	= $E0
@@ -207,7 +208,7 @@ FILTER_IF_OUT:
 FILTER_IF_DOT:
 {
 			cld
-			SET_ADDR(candidates, BV1)
+			SET_ADDR(candidates, BV3)					//rechech if free
 			lda candidates_length
 			cmp #0
 			beq out
@@ -220,17 +221,15 @@ each:		txa
 			asl
 			tay
 			//x
-			lda (BV1),y
+			lda (BV3),y
 			sta grid_pointer
 			//y
 			iny
-			lda (BV1),y
+			lda (BV3),y
 			sta grid_pointer+1
 			MOV16(maze_memory_alloc, ZP1)
 			CALC_GRID_LOCATION(grid_pointer)			//grid address now in ZP1
-			
-			//Console16(ZP1)
-			//EndLine()
+
 			ldy #0
 			lda (ZP1),y
 			cmp #DOT
@@ -241,14 +240,15 @@ each:		txa
 			bpl each
 	out:	rts
 	shift:
+
 			stx TEMPX									//save x
 			stx VAR_A									//set index to VAR_A
 			MOV8(candidates_length, VAR_B)				//set length to VAR_B
 			sty VAR_D									//save y
-			SPLICE_ARRAY(candidates, 2)					//splice candidates at x
+			SPLICE_ARRAY(candidates, 2)					//splice candidates at x, uses BV1
 			ldy VAR_D									//restore y
 			MOV8(candidates_length, VAR_B)				//set length to VAR_B, as splice is changing that
-			SPLICE_ARRAY(candidates_vectors, 2)			//splice candidates_vectors at x
+			SPLICE_ARRAY(candidates_vectors, 2)			//splice candidates_vectors at x, uses BV1
 			dec candidates_length						//dec array length
 			ldx TEMPX									//restore x
 			jmp cont									//return to loop
@@ -274,15 +274,12 @@ outer:
 				lda #0										//index in A									
 				jmp skip_else
 		then:
-				//Random4()									//rnd index in A (0 - 3)
 
 				lda candidates_length
 				tax
 				dex
 				stx ZP0
 				RandomNumber(0, ZP0)
-				//Console8(ZP0)
-				//EndLine()
 				lda WINT
 
 		skip_else:

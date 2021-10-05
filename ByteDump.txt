@@ -360,9 +360,9 @@
 0ab0: 4c 77 0a  -         jmp cont									//return to loop
 0ab3: d8        - FILTER_IF_DOT:cld
 0ab4: a9 c8     -         lda #<addr
-0ab6: 85 43     -         sta X
+0ab6: 85 45     -         sta X
 0ab8: a9 0b     -         lda #>addr
-0aba: 85 44     -         sta X+1
+0aba: 85 46     -         sta X+1
 0abc: ad d8 0b  -         lda candidates_length
 0abf: c9 00     -         cmp #0
 0ac1: f0 70     -         beq out
@@ -371,10 +371,10 @@
 0ac5: 8a        - each:   txa
 0ac6: 0a        -         asl
 0ac7: a8        -         tay
-0ac8: b1 43     -         lda (BV1),y
+0ac8: b1 45     -         lda (BV3),y
 0aca: 8d c4 0b  -         sta grid_pointer
 0acd: c8        -         iny
-0ace: b1 43     -         lda (BV1),y
+0ace: b1 45     -         lda (BV3),y
 0ad0: 8d c5 0b  -         sta grid_pointer+1
 0ad3: ad c0 0b  -         lda X
 0ad6: 85 fb     -         sta Y
