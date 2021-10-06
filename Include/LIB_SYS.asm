@@ -62,6 +62,8 @@
 .const  BV2         = $44       //INPPTR
 .const  BV3         = $45       //VARNAM
 .const  BV4         = $46       //VARNAM
+.const  BV5         = $4B       //TXTPTR 
+.const  BV6         = $4C       //TXTPTR 
 .const  VAR_A       = $47       //VARPNT
 .const  VAR_B       = $48       //VARPNT
 .const  VAR_C       = $49       //FORPNT

@@ -21,6 +21,11 @@ UP:			.byte 	0, -1
 DOWN:		.byte 	0, 1
 LEFT:		.byte	-1, 0
 RIGHT:		.byte 	1,0
+CORNERS:
+UL:			.byte 	-1, -1
+UR:			.byte 	1, -1
+DL:			.byte 	-1, 1
+DR:			.byte 	1, 1
 
 
 

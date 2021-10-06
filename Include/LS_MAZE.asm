@@ -2,7 +2,7 @@
 //----------------------------------------------------------------			
 /*****************************************************************
 LS_MAZE.asm
-v0.04
+v0.07
 
 MAZE structs and methods
 
@@ -30,6 +30,7 @@ memory:
 //-----------------------MACROS-----------------------------
 
 .macro INIT_MAZE(memory, start){
+
 /*
 arguments: memory: 	memory address of where to create maze
 					default $0400 (screen)
@@ -44,6 +45,7 @@ arguments: memory: 	memory address of where to create maze
 }
 
 .macro CALC_GRID_LOCATION(grid){
+	
 /**
 	arguments,
 		grid as grid.x, grid.y = grid.x + 1
@@ -117,18 +119,18 @@ POINTERS_FROM_START:
 			cld
 			SET_ADDR(candidates, ZP1)
 			SET_ADDR(BASIC_DIRS, ZP3)
-			//calc candidates
+												//calc candidates
 			ldx #03
 	add:	txa
 			asl
 			tay		
-			//x
+												//x
 			clc
 			lda maze_start
 			adc (ZP3),y
 			sta (ZP1),y
 			iny
-			//y
+												//y
 			clc
 			lda maze_start+1
 			adc (ZP3),y
@@ -136,7 +138,7 @@ POINTERS_FROM_START:
 			dex
 			bpl add
 
-			//copy vectors
+												//copy vectors
 			SET_ADDR(candidates_vectors, ZP1)
 			ldx #03
 	copy:	txa
@@ -149,7 +151,7 @@ POINTERS_FROM_START:
 			sta (ZP1),y
 			dex
 			bpl copy
-			//
+
 			lda #04
 			sta candidates_length
 			rts
@@ -172,13 +174,13 @@ FILTER_IF_OUT:
 			asl
 			tay
 			clc
-			//x
+												//x
 			lda (ZP1),y	
 			cmp #MAX_X+1
 			bcs shift
 			cmp #MIN_X
 			bcc shift
-			//y
+												//y
 			iny
 			clc
 			lda (ZP1),y
@@ -193,9 +195,7 @@ FILTER_IF_OUT:
 			stx TEMPX									//save x							
 			stx VAR_A									//set index to VAR_A
 			MOV8(candidates_length, VAR_B)				//set length to VAR_B
-			sty VAR_D									//save y
 			SPLICE_ARRAY(candidates, 2)					//splice candidates at x
-			ldy VAR_D									//restore y
 			MOV8(candidates_length, VAR_B)				//set length to VAR_B, as splice is changing that
 			SPLICE_ARRAY(candidates_vectors, 2)			//splice candidates_vectors at x
 			dec candidates_length						//dec array length
@@ -215,15 +215,15 @@ FILTER_IF_DOT:
 
 			tax											//number of grids yet to check
 			dex
-		//checking each remaining grid
+														//checking each remaining grid
 
 each:		txa
 			asl
 			tay
-			//x
+														//x
 			lda (BV3),y
 			sta grid_pointer
-			//y
+														//y
 			iny
 			lda (BV3),y
 			sta grid_pointer+1
@@ -235,7 +235,7 @@ each:		txa
 			cmp #DOT
 			beq shift
 			
-		//end of grid check
+														//end of grid check
 	cont:	dex
 			bpl each
 	out:	rts
@@ -244,9 +244,7 @@ each:		txa
 			stx TEMPX									//save x
 			stx VAR_A									//set index to VAR_A
 			MOV8(candidates_length, VAR_B)				//set length to VAR_B
-			sty VAR_D									//save y
 			SPLICE_ARRAY(candidates, 2)					//splice candidates at x, uses BV1
-			ldy VAR_D									//restore y
 			MOV8(candidates_length, VAR_B)				//set length to VAR_B, as splice is changing that
 			SPLICE_ARRAY(candidates_vectors, 2)			//splice candidates_vectors at x, uses BV1
 			dec candidates_length						//dec array length
@@ -267,10 +265,79 @@ PUSH_REST_ON_STACK:
 			SPLICE_ARRAY(candidates_vectors, 2)			//splice candidates_vectors at x, uses BV1
 			dec candidates_length						//dec array length
 														//copy remaining on stack
+			//cont here
 
 
 
 	out:	rts		
+}
+
+/*****************************************************************/
+
+FILTER_IF_CLOSE_PRIMARY:
+/** first pass: remove those that are close from primary direction */
+{
+			cld
+			SET_ADDR(candidates, BV3)	
+			SET_ADDR(candidates_vectors, BV5)				
+			lda candidates_length
+			cmp #1
+			bpl start										//cont if 1 or more
+			rts												//else exit, if no candidates
+
+	start:	tax												//number of grids yet to check
+			dex												//to zero offset
+
+	each:	txa
+			asl												//double, because datasize is 2
+			tay												//offset in y (zero based x * datasize)
+
+															//x
+			lda (BV3),y
+			sta grid_pointer
+			lda (BV5),y
+			sta direction_pointer
+															//y
+			iny
+			lda (BV3),y
+			sta grid_pointer+1
+			lda (BV5),y
+			sta direction_pointer+1
+
+															//add dir to grid
+			lda grid_pointer
+			clc
+			adc direction_pointer
+			sta grid_pointer
+
+			lda grid_pointer+1
+			clc
+			adc direction_pointer+1
+			sta grid_pointer+1
+
+			MOV16(maze_memory_alloc, ZP1)				//move pointer to ZP1
+			CALC_GRID_LOCATION(grid_pointer)			//grid address now in ZP1
+
+			ldy #0
+			lda (ZP1),y
+			cmp #DOT									//is dot? (empty)
+			beq shift									//yes
+			
+	cont:	dex
+			bmi out										//less than zero, stop
+			jmp each									//loop back, branch too far
+	out:	rts
+	shift:
+
+			stx TEMPX									//save x
+			stx VAR_A									//set index to VAR_A
+			MOV8(candidates_length, VAR_B)				//set length to VAR_B
+			SPLICE_ARRAY(candidates, 2)					//splice candidates at x, uses BV1
+			MOV8(candidates_length, VAR_B)				//set length to VAR_B, as splice is changing that
+			SPLICE_ARRAY(candidates_vectors, 2)			//splice candidates_vectors at x, uses BV1
+			dec candidates_length						//dec array length
+			ldx TEMPX									//restore x
+			jmp cont									//return to loop
 }
 
 //--- MAIN -------------------------------------------------------
@@ -284,6 +351,7 @@ outer:
 				jsr POINTERS_FROM_START
 				jsr FILTER_IF_OUT
 				jsr FILTER_IF_DOT
+				jsr FILTER_IF_CLOSE_PRIMARY
 															//select candidate
 				lda candidates_length						//check how many we have
 				cmp #00										//if zero break;
@@ -317,8 +385,9 @@ outer:
 				cmp #02										//if there are 2 or more, selected has not been discarded yet
 				bcc repeat_P								//no, repeat loop
 															//yes
-				jsr PUSH_REST_ON_STACK													
+				jsr PUSH_REST_ON_STACK						//!!!! incomplete !!!!							
 			
+				//WaitAnyKey()
 	repeat_P:	jmp P_LOOP
 	
 	/** take from stack */
@@ -334,12 +403,15 @@ MAZE_memory: 				* = MAZE_memory "MAZE Memory"
 maze_memory_alloc:			.word $0040 	//screen by default, safe
 maze_start:					.word 0
 grid_pointer:				.word 0
+direction_pointer:			.word 0
 stack_pointer:				.word 0
 candidates:
 .for(var i=0; i<4; i++)		.fill 2,0
 candidates_vectors:
 .for(var i=0; i<4; i++)		.fill 2,0
 candidates_length: 			.byte 0
+proximity:
+.for(var i=0; i<4; i++)		.fill 2,0
 debug:						.text ". "
 							brk
 
