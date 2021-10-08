@@ -68,6 +68,12 @@
 .const  VAR_B       = $48       //VARPNT
 .const  VAR_C       = $49       //FORPNT
 .const  VAR_D       = $4A       //FORPNT
+.const  BV7         = $4B       //OPPTR 
+.const  BV8         = $4C       //OPPTR 
+.const  BV9         = $4E       //DEFPNT 
+.const  BV10        = $4F       //DEFPNT 
+.const  TEMPX2      = $4D       //OPMASK
+.const  TEMPY2      = $53       //FOUR6
 //--------------- LS constants ----------------------------
 .const 	maxCOL 		= 40
 .const 	maxROW 		= 25

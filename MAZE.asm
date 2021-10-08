@@ -4,10 +4,12 @@
 
 http://unusedino.de/ec64/technical/project64/mapping_c64.html
 https://www.c64-wiki.com/wiki/Zeropage
+http://www.c64os.com/post/6502instructions
+
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.02.07"
+.const VER	= "0.02.08"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------

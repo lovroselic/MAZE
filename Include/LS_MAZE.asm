@@ -1,14 +1,19 @@
 #importonce
+
 //----------------------------------------------------------------			
 /*****************************************************************
 LS_MAZE.asm
-v0.07
+v0.08
 
 MAZE structs and methods
 
 dependencies:
 	standard includes
 memory:
+
+known bugs:
+	retracing over dot
+	can't continue at border, but should
 	
 *****************************************************************/
 #import "LS_System.asm"
@@ -20,6 +25,7 @@ memory:
 
 .const WALL 	= $E0
 .const DOT 		= $20
+.const TEST		= $21
 .const STACK	= $C000
 .const DSIZE	= 4
 .const MAX_X	= 38
@@ -48,7 +54,8 @@ arguments: memory: 	memory address of where to create maze
 	
 /**
 	arguments,
-		grid as grid.x, grid.y = grid.x + 1
+		grid as grid.x, 
+				grid.y = grid.x + 1
 
 	assumes:
 		maze_memory_alloc in ZP1
@@ -108,6 +115,18 @@ MAZE_DOT:
 
 			lda #DOT
 			ldy #0
+			//debug if dotted twice
+			lda (ZP1),y
+			cmp #DOT
+			beq bug
+			lda #DOT
+			jmp cont
+bug:		
+.break
+
+			lda #TEST
+cont:
+			//debug end
 			sta (ZP1),y
 			rts
 }
@@ -240,7 +259,6 @@ each:		txa
 			bpl each
 	out:	rts
 	shift:
-
 			stx TEMPX									//save x
 			stx VAR_A									//set index to VAR_A
 			MOV8(candidates_length, VAR_B)				//set length to VAR_B
@@ -328,7 +346,115 @@ FILTER_IF_CLOSE_PRIMARY:
 			jmp each									//loop back, branch too far
 	out:	rts
 	shift:
+			stx TEMPX									//save x
+			stx VAR_A									//set index to VAR_A
+			MOV8(candidates_length, VAR_B)				//set length to VAR_B
+			SPLICE_ARRAY(candidates, 2)					//splice candidates at x, uses BV1
+			MOV8(candidates_length, VAR_B)				//set length to VAR_B, as splice is changing that
+			SPLICE_ARRAY(candidates_vectors, 2)			//splice candidates_vectors at x, uses BV1
+			dec candidates_length						//dec array length
+			ldx TEMPX									//restore x
+			jmp cont									//return to loop
+}
 
+/*****************************************************************/
+
+FILTER_SIDE_PROXIMIY:
+/** second pass: filter side and corner proximities */
+{
+			cld
+			SET_ADDR(candidates, BV3)	
+			SET_ADDR(candidates_vectors, BV5)				
+			lda candidates_length
+			cmp #1
+			bpl start										//cont if 1 or more
+			rts												//else exit, if no candidates
+
+	start:	tax												//number of grids yet to check
+			dex												//to zero offset
+
+	each:	
+			//stx TEMPX2			//save x
+			txa
+			asl												//double, because datasize is 2
+			tay												//offset in y (zero based x * datasize)
+
+			lda (BV3),y
+			sta grid_pointer
+			lda (BV5),y
+			sta direction_pointer
+			iny
+			lda (BV3),y
+			sta grid_pointer+1
+			lda (BV5),y
+			sta direction_pointer+1
+															//set directions table
+															//first copy PROX_TEMPLATE to proximity
+
+			//macro MEM_COPY(Source,Destination,Length)
+			SET_ADDR(PROX_TEMPLATE, BV7)					//source
+			SET_ADDR(proximity_vectors, BV9)				//destination	
+			ldy #08											//length
+			dey
+	copy:	lda (BV7),y
+			sta (BV9),y
+			dey
+			bpl copy
+			//macro end
+
+															//expand direction pointer into head and side pointers
+															//first find out which dimension is not zero in direction_pointer
+			ldy #01											//y?
+			lda direction_pointer,y
+			bne ok											//if not zero, than this is right dimension
+			dey												//not y, but x
+	ok:		lda #1											//index of dimension now in y register
+			sta proximity_vectors,y							//set sequence 1,1,0,0 on the right dimension, datasize=2
+			iny
+			iny
+			sta proximity_vectors,y	
+			iny
+			iny
+			lda #0
+			sta proximity_vectors,y	
+			iny
+			iny
+			sta proximity_vectors,y							//proximity vectors ready
+
+															//calc location for each proximity vector, from grid_pointer
+			ldy #00
+	repeat:	lda grid_pointer
+			clc
+			adc proximity_vectors,y
+			sta test_pointer
+			iny
+			lda grid_pointer+1
+			clc
+			adc proximity_vectors,y
+			sta test_pointer+1								//next grid now in test_pointer
+			sty TEMPY										//save y
+
+			MOV16(maze_memory_alloc, ZP1)					//move pointer to ZP1
+			CALC_GRID_LOCATION(test_pointer)				//grid address now in ZP1
+
+			ldy #0
+			lda (ZP1),y
+			cmp #DOT										//is dot? (empty)
+			beq shift										//yes, shift on x
+															//no, check others
+			ldy TEMPY										//restore y
+			iny
+			cpy #08
+			bne repeat
+			
+
+	cont:	
+			//ldx TEMPX2			//restore x
+			dex
+			bmi out											//less than zero, stop
+			jmp each										//loop back, branch too far
+	out:	rts
+	shift:
 			stx TEMPX									//save x
 			stx VAR_A									//set index to VAR_A
 			MOV8(candidates_length, VAR_B)				//set length to VAR_B
@@ -352,6 +478,7 @@ outer:
 				jsr FILTER_IF_OUT
 				jsr FILTER_IF_DOT
 				jsr FILTER_IF_CLOSE_PRIMARY
+				//jsr FILTER_SIDE_PROXIMIY
 															//select candidate
 				lda candidates_length						//check how many we have
 				cmp #00										//if zero break;
@@ -404,14 +531,16 @@ maze_memory_alloc:			.word $0040 	//screen by default, safe
 maze_start:					.word 0
 grid_pointer:				.word 0
 direction_pointer:			.word 0
+test_pointer:				.word 0
 stack_pointer:				.word 0
 candidates:
 .for(var i=0; i<4; i++)		.fill 2,0
 candidates_vectors:
 .for(var i=0; i<4; i++)		.fill 2,0
 candidates_length: 			.byte 0
-proximity:
+proximity_vectors:
 .for(var i=0; i<4; i++)		.fill 2,0
+
 debug:						.text ". "
 							brk
 

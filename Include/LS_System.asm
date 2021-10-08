@@ -2,7 +2,7 @@
 //----------------------------------------------------------------			
 /*****************************************************************
 LS_System.asm
-v0.04
+v0.05
 
 dependencies:
 	standard includes
@@ -19,58 +19,55 @@ memory:
 SPLICE:
 {
 
-			//length in VAR_B
-			//data size in VAR_C
-			//array start in (BV1)
+													//length in VAR_B
+													//data size in VAR_C
+													//array start in (BV1)
 			cld
-			dec VAR_B	//array length - 1
-			ldy VAR_A	//index
+			dec VAR_B								//array length - 1
+			ldy VAR_A								//index
 	loop:	cpy VAR_B
 			bcs out 	
 
-			ldx #0			//number of properties (data_size), start from 0
+			ldx #0									//number of properties (data_size), start from 0
 
-			//from i+1
-	each:					//for each property in data_size
+													//from i+1
+	each:											//for each property in data_size
 			iny		
 			sty TEMPY
 
-			//recalc y as offset
-			lda	VAR_C 		//data size
-							//y has right value
+													//recalc y as offset
+			lda	VAR_C 								//data size
+													//y has right value
 			jsr MUL_Y_A
-							//y <- y*datasize, a = hi byte
+													//y <- y*datasize, a = hi byte
 			sty ZP0
 			txa
 			clc
 			adc ZP0
 			tay
-			//
 
 			lda (BV1),y
 			sta TEMPA1
-			
-			//to i
+													//to i
 			ldy TEMPY
 			dey
 			sty TEMPY
 
-			//recalc y as offset
-			lda	VAR_C 		//data size
-							//y has right value
+													//recalc y as offset
+			lda	VAR_C 								//data size
+													//y has right value
 			jsr MUL_Y_A
-							//y <- y*datasize, a = hi byte
+													//y <- y*datasize, a = hi byte
 			sty ZP0
 			txa
 			clc
 			adc ZP0
 			tay
-			//
 
 			lda TEMPA1
 			sta (BV1),y
 			inx
-			cpx VAR_C		//all props? less than VAR_C ?
+			cpx VAR_C								//all props? less than VAR_C ?
 			ldy TEMPY
 			bcc each
 
@@ -84,6 +81,7 @@ SPLICE:
 
 MUL_Y_A:
 {
+
 /**
 	acc: multiplier
 	Y: muplitplicant
@@ -114,6 +112,7 @@ end:		tya
 
 //--- MACRO ------------------------------------------------------
 .macro StringToInt8(pointer){
+
 /*
 arguments: pointer to zero terminated string
 return: X: 8-bit int
@@ -125,14 +124,22 @@ return: X: 8-bit int
 			jsr CHRGET
 			jsr EVALNUM
 }
+
+/*****************************************************************/
+
 .macro MOV8(X, Y){
+
 /*
 arguments: X origin, Y destination
 */
 			lda X
 			sta Y
 }
+
+/*****************************************************************/
+
 .macro MOV16(X, Y){
+
 /*
 arguments: X origin, Y destination
 */
@@ -141,7 +148,11 @@ arguments: X origin, Y destination
 			lda X + 1
 			sta Y + 1
 }
+
+/*****************************************************************/
+
 .macro CLEAR16(X){
+
 /*
 arguments: X 16 bit address to be set to 0
 */
@@ -149,7 +160,11 @@ arguments: X 16 bit address to be set to 0
 			sta X
 			sta X+1
 }
+
+/*****************************************************************/
+
 .macro ASL16(X){
+
 /*
 arguments: X 16 bit address, value shifted left
 
@@ -158,7 +173,10 @@ arguments: X 16 bit address, value shifted left
 			rol X+1	
 }
 
+/*****************************************************************/
+
 .macro ADD16(X,Y){
+
 /*
 arguments: X,Y 16 bit addresses; add value of Y to X
 result in X
@@ -176,7 +194,10 @@ skip:	clc
 		sta X+1	
 }
 
+/*****************************************************************/
+
 .macro ADD8to16(X,y){
+
 /*
 arguments: 	X 16 bit address; 
 			y B bit
@@ -192,7 +213,10 @@ result in X
 out:	inc X+1
 }
 
+/*****************************************************************/
+
 .macro SET_ADDR(addr,X){
+
 /*
 arguments: 
 	addr  	address
@@ -204,7 +228,10 @@ arguments:
 		sta X+1
 }
 
+/*****************************************************************/
+
 .macro SPLICE_ARRAY(which, data_size){
+
 /*
 arguments: 
 	which: pointer to array -> BV1
@@ -219,9 +246,11 @@ implied:
 		jsr SPLICE
 
 }
+
+/*****************************************************************/
+
 //-----------------------DATA-------------------------------
 SYS_data: 		* = SYS_data "SYSTEM_data"
-//tempX:	.byte 0
-//tempY:	.byte 0
+
 //----------------------------------------------------------------	
 
