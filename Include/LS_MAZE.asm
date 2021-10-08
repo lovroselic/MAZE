@@ -3,7 +3,7 @@
 //----------------------------------------------------------------			
 /*****************************************************************
 LS_MAZE.asm
-v0.08
+v0.09
 
 MAZE structs and methods
 
@@ -123,7 +123,6 @@ MAZE_DOT:
 			jmp cont
 bug:		
 .break
-
 			lda #TEST
 cont:
 			//debug end
@@ -184,9 +183,12 @@ FILTER_IF_OUT:
 			cld
 			SET_ADDR(candidates, ZP1)
 			lda candidates_length
-			cmp #0
-			beq out
+			//cmp #0
+			//beq out
+			cmp #1
+			bcc out
 			
+			//SET_ADDR(candidates, ZP1)
 			tax
 			dex
 	each:	txa
@@ -227,11 +229,14 @@ FILTER_IF_OUT:
 FILTER_IF_DOT:
 {
 			cld
-			SET_ADDR(candidates, BV3)					//rechech if free
+			SET_ADDR(candidates, BV3)					
 			lda candidates_length
-			cmp #0
-			beq out
+			//cmp #0
+			//beq out
+			cmp #1
+			bcc out
 
+			//SET_ADDR(candidates, BV3)	
 			tax											//number of grids yet to check
 			dex
 														//checking each remaining grid
@@ -300,10 +305,13 @@ FILTER_IF_CLOSE_PRIMARY:
 			SET_ADDR(candidates_vectors, BV5)				
 			lda candidates_length
 			cmp #1
-			bpl start										//cont if 1 or more
+			bcs start										//cont if 1 or more
 			rts												//else exit, if no candidates
 
-	start:	tax												//number of grids yet to check
+	start:	
+			//SET_ADDR(candidates, BV3)	
+			//SET_ADDR(candidates_vectors, BV5)
+			tax												//number of grids yet to check
 			dex												//to zero offset
 
 	each:	txa
@@ -367,10 +375,13 @@ FILTER_SIDE_PROXIMIY:
 			SET_ADDR(candidates_vectors, BV5)				
 			lda candidates_length
 			cmp #1
-			bpl start										//cont if 1 or more
+			bcs start										//cont if 1 or more
 			rts												//else exit, if no candidates
 
-	start:	tax												//number of grids yet to check
+	start:	
+			//SET_ADDR(candidates, BV3)	
+			//SET_ADDR(candidates_vectors, BV5)	
+			tax												//number of grids yet to check
 			dex												//to zero offset
 
 	each:	
@@ -408,7 +419,7 @@ FILTER_SIDE_PROXIMIY:
 			lda direction_pointer,y
 			bne ok											//if not zero, than this is right dimension
 			dey												//not y, but x
-	ok:		lda #1											//index of dimension now in y register
+	ok:		lda direction_pointer,y							//index of dimension now in y register
 			sta proximity_vectors,y							//set sequence 1,1,0,0 on the right dimension, datasize=2
 			iny
 			iny
@@ -478,17 +489,16 @@ outer:
 				jsr FILTER_IF_OUT
 				jsr FILTER_IF_DOT
 				jsr FILTER_IF_CLOSE_PRIMARY
-				//jsr FILTER_SIDE_PROXIMIY
+				jsr FILTER_SIDE_PROXIMIY
 															//select candidate
 				lda candidates_length						//check how many we have
 				cmp #00										//if zero break;
 				beq S_LOOP									//goto stack loop
-				cmp #01										//if just one
-				bcs then									//if not go to else/then
-				lda #0										//index in A									
+				cmp #02										//if it is two or more
+				bcs then									//go to else/then
+				lda #0										//otherwise, index->0 in A									
 				jmp skip_else
-		then:
-
+		then:												//random index (, candidates length-1)
 				lda candidates_length
 				tax
 				dex

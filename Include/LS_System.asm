@@ -23,10 +23,10 @@ SPLICE:
 													//data size in VAR_C
 													//array start in (BV1)
 			cld
-			dec VAR_B								//array length - 1
+			dec VAR_B								//array length - 1, last index
 			ldy VAR_A								//index
 	loop:	cpy VAR_B
-			bcs out 	
+			bcs out 								//equal or greater
 
 			ldx #0									//number of properties (data_size), start from 0
 
@@ -239,6 +239,7 @@ arguments:
 implied:
 	index: where to remove one element VAR_A
 	length of array: VAR_B
+destroys: a,y,x
 */
 		SET_ADDR(which, BV1)
 		lda #data_size
