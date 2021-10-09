@@ -115,6 +115,7 @@ MAZE_DOT:
 
 			lda #DOT
 			ldy #0
+
 			//debug if dotted twice
 			lda (ZP1),y
 			cmp #DOT
@@ -126,6 +127,7 @@ bug:
 			lda #TEST
 cont:
 			//debug end
+
 			sta (ZP1),y
 			rts
 }
@@ -134,8 +136,7 @@ cont:
 
 POINTERS_FROM_START:
 {
-			cld
-			SET_ADDR(candidates, ZP1)
+			SET_ADDR(candidates, BV3)
 			SET_ADDR(BASIC_DIRS, ZP3)
 												//calc candidates
 			ldx #03
@@ -146,27 +147,27 @@ POINTERS_FROM_START:
 			clc
 			lda maze_start
 			adc (ZP3),y
-			sta (ZP1),y
+			sta (BV3),y
 			iny
 												//y
 			clc
 			lda maze_start+1
 			adc (ZP3),y
-			sta (ZP1),y
+			sta (BV3),y
 			dex
 			bpl add
 
 												//copy vectors
-			SET_ADDR(candidates_vectors, ZP1)
+			SET_ADDR(candidates_vectors, BV5)
 			ldx #03
 	copy:	txa
 			asl
 			tay	
 			lda (ZP3),y
-			sta (ZP1),y
+			sta (BV5),y
 			iny
 			lda (ZP3),y
-			sta (ZP1),y
+			sta (BV5),y
 			dex
 			bpl copy
 
@@ -180,15 +181,14 @@ POINTERS_FROM_START:
 
 FILTER_IF_OUT:
 {
-			cld
-			SET_ADDR(candidates, ZP1)
 			lda candidates_length
-			//cmp #0
-			//beq out
 			cmp #1
-			bcc out
+			bcs start
+			rts
 			
-			//SET_ADDR(candidates, ZP1)
+	start:
+			SET_ADDR(candidates, BV3)			
+			lda candidates_length
 			tax
 			dex
 	each:	txa
@@ -196,7 +196,7 @@ FILTER_IF_OUT:
 			tay
 			clc
 												//x
-			lda (ZP1),y	
+			lda (BV3),y	
 			cmp #MAX_X+1
 			bcs shift
 			cmp #MIN_X
@@ -204,13 +204,14 @@ FILTER_IF_OUT:
 												//y
 			iny
 			clc
-			lda (ZP1),y
+			lda (BV3),y
 			cmp #MAX_Y+1
 			bcs shift
 			cmp #MIN_Y
 			bcc shift
 	cont:	dex
-			bpl each
+			bmi out
+			jmp each
 	out:	rts
 	shift:
 			stx TEMPX									//save x							
@@ -227,20 +228,19 @@ FILTER_IF_OUT:
 /*****************************************************************/
 
 FILTER_IF_DOT:
-{
-			cld
-			SET_ADDR(candidates, BV3)					
-			lda candidates_length
-			//cmp #0
-			//beq out
-			cmp #1
-			bcc out
+{		
 
-			//SET_ADDR(candidates, BV3)	
+			lda candidates_length
+			cmp #1
+			bcs start
+			rts
+
+start:
+			SET_ADDR(candidates, BV3)
+			lda candidates_length	
 			tax											//number of grids yet to check
 			dex
 														//checking each remaining grid
-
 each:		txa
 			asl
 			tay
@@ -299,18 +299,16 @@ PUSH_REST_ON_STACK:
 
 FILTER_IF_CLOSE_PRIMARY:
 /** first pass: remove those that are close from primary direction */
-{
-			cld
-			SET_ADDR(candidates, BV3)	
-			SET_ADDR(candidates_vectors, BV5)				
+{	
 			lda candidates_length
 			cmp #1
 			bcs start										//cont if 1 or more
 			rts												//else exit, if no candidates
 
 	start:	
-			//SET_ADDR(candidates, BV3)	
-			//SET_ADDR(candidates_vectors, BV5)
+			SET_ADDR(candidates, BV3)	
+			SET_ADDR(candidates_vectors, BV5)
+			lda candidates_length
 			tax												//number of grids yet to check
 			dex												//to zero offset
 
@@ -331,18 +329,18 @@ FILTER_IF_CLOSE_PRIMARY:
 			sta direction_pointer+1
 
 															//add dir to grid
+			clc
 			lda grid_pointer
-			clc
 			adc direction_pointer
-			sta grid_pointer
+			sta test_pointer
 
-			lda grid_pointer+1
 			clc
+			lda grid_pointer+1
 			adc direction_pointer+1
-			sta grid_pointer+1
+			sta test_pointer+1
 
 			MOV16(maze_memory_alloc, ZP1)				//move pointer to ZP1
-			CALC_GRID_LOCATION(grid_pointer)			//grid address now in ZP1
+			CALC_GRID_LOCATION(test_pointer)			//grid address now in ZP1
 
 			ldy #0
 			lda (ZP1),y
@@ -369,23 +367,20 @@ FILTER_IF_CLOSE_PRIMARY:
 
 FILTER_SIDE_PROXIMIY:
 /** second pass: filter side and corner proximities */
-{
-			cld
-			SET_ADDR(candidates, BV3)	
-			SET_ADDR(candidates_vectors, BV5)				
+{		
 			lda candidates_length
 			cmp #1
 			bcs start										//cont if 1 or more
 			rts												//else exit, if no candidates
 
 	start:	
-			//SET_ADDR(candidates, BV3)	
-			//SET_ADDR(candidates_vectors, BV5)	
+			SET_ADDR(candidates, BV3)	
+			SET_ADDR(candidates_vectors, BV5)	
+			lda candidates_length
 			tax												//number of grids yet to check
 			dex												//to zero offset
 
 	each:	
-			//stx TEMPX2			//save x
 			txa
 			asl												//double, because datasize is 2
 			tay												//offset in y (zero based x * datasize)
@@ -402,7 +397,9 @@ FILTER_SIDE_PROXIMIY:
 															//set directions table
 															//first copy PROX_TEMPLATE to proximity
 
+			MEM_COPY(PROX_TEMPLATE, proximity_vectors, 8)
 			//macro MEM_COPY(Source,Destination,Length)
+			/*
 			SET_ADDR(PROX_TEMPLATE, BV7)					//source
 			SET_ADDR(proximity_vectors, BV9)				//destination	
 			ldy #08											//length
@@ -411,6 +408,7 @@ FILTER_SIDE_PROXIMIY:
 			sta (BV9),y
 			dey
 			bpl copy
+			*/
 			//macro end
 
 															//expand direction pointer into head and side pointers
@@ -460,9 +458,8 @@ FILTER_SIDE_PROXIMIY:
 			
 
 	cont:	
-			//ldx TEMPX2			//restore x
 			dex
-			bmi out											//less than zero, stop
+			bmi out										//less than zero, stop
 			jmp each										//loop back, branch too far
 	out:	rts
 	shift:

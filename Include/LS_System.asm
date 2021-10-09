@@ -22,54 +22,52 @@ SPLICE:
 													//length in VAR_B
 													//data size in VAR_C
 													//array start in (BV1)
-			cld
 			dec VAR_B								//array length - 1, last index
 			ldy VAR_A								//index
-	loop:	cpy VAR_B
-			bcs out 								//equal or greater
+	loop:	cpy VAR_B								//stop if index
+			//bcs out 								//equal or greater than last index
+			bpl out 								//equal or greater than last index
 
 			ldx #0									//number of properties (data_size), start from 0
-
 													//from i+1
-	each:											//for each property in data_size
-			iny		
-			sty TEMPY
+		each:											//for each property in data_size
+				iny		
+				sty TEMPY
+														//recalc y as offset
+				lda	VAR_C 								//data size
+														//y has right value
+				jsr MUL_Y_A
+														//y <- y*datasize, a = hi byte
+				sty ZP0
+				txa
+				clc
+				adc ZP0
+				tay
 
-													//recalc y as offset
-			lda	VAR_C 								//data size
-													//y has right value
-			jsr MUL_Y_A
-													//y <- y*datasize, a = hi byte
-			sty ZP0
-			txa
-			clc
-			adc ZP0
-			tay
+				lda (BV1),y
+				sta TEMPA1
+														//to i
+				ldy TEMPY
+				dey
+				sty TEMPY
+														//recalc y as offset
+				lda	VAR_C 								//data size
+														//y has right value
+				jsr MUL_Y_A
+														//y <- y*datasize, a = hi byte
+				sty ZP0
+				txa
+				clc
+				adc ZP0
+				tay
 
-			lda (BV1),y
-			sta TEMPA1
-													//to i
-			ldy TEMPY
-			dey
-			sty TEMPY
+				lda TEMPA1
+				sta (BV1),y
+				ldy TEMPY
 
-													//recalc y as offset
-			lda	VAR_C 								//data size
-													//y has right value
-			jsr MUL_Y_A
-													//y <- y*datasize, a = hi byte
-			sty ZP0
-			txa
-			clc
-			adc ZP0
-			tay
-
-			lda TEMPA1
-			sta (BV1),y
-			inx
-			cpx VAR_C								//all props? less than VAR_C ?
-			ldy TEMPY
-			bcc each
+				inx
+				cpx VAR_C								//all props? less than VAR_C ?
+				bcc each
 
 			iny
 			jmp loop
@@ -85,6 +83,7 @@ MUL_Y_A:
 /**
 	acc: multiplier
 	Y: muplitplicant
+	uses: ZP0
 	return: product in  acc(hi) and y(lo)
 */
 
@@ -111,7 +110,8 @@ end:		tya
 /*****************************************************************/
 
 //--- MACRO ------------------------------------------------------
-.macro StringToInt8(pointer){
+.macro StringToInt8(pointer)
+{
 
 /*
 arguments: pointer to zero terminated string
@@ -127,7 +127,8 @@ return: X: 8-bit int
 
 /*****************************************************************/
 
-.macro MOV8(X, Y){
+.macro MOV8(X, Y)
+{
 
 /*
 arguments: X origin, Y destination
@@ -138,7 +139,8 @@ arguments: X origin, Y destination
 
 /*****************************************************************/
 
-.macro MOV16(X, Y){
+.macro MOV16(X, Y)
+{
 
 /*
 arguments: X origin, Y destination
@@ -151,7 +153,8 @@ arguments: X origin, Y destination
 
 /*****************************************************************/
 
-.macro CLEAR16(X){
+.macro CLEAR16(X)
+{
 
 /*
 arguments: X 16 bit address to be set to 0
@@ -163,7 +166,8 @@ arguments: X 16 bit address to be set to 0
 
 /*****************************************************************/
 
-.macro ASL16(X){
+.macro ASL16(X)
+{
 
 /*
 arguments: X 16 bit address, value shifted left
@@ -175,7 +179,8 @@ arguments: X 16 bit address, value shifted left
 
 /*****************************************************************/
 
-.macro ADD16(X,Y){
+.macro ADD16(X,Y)
+{
 
 /*
 arguments: X,Y 16 bit addresses; add value of Y to X
@@ -196,7 +201,8 @@ skip:	clc
 
 /*****************************************************************/
 
-.macro ADD8to16(X,y){
+.macro ADD8to16(X,y)
+{
 
 /*
 arguments: 	X 16 bit address; 
@@ -215,7 +221,8 @@ out:	inc X+1
 
 /*****************************************************************/
 
-.macro SET_ADDR(addr,X){
+.macro SET_ADDR(addr,X)
+{
 
 /*
 arguments: 
@@ -230,7 +237,8 @@ arguments:
 
 /*****************************************************************/
 
-.macro SPLICE_ARRAY(which, data_size){
+.macro SPLICE_ARRAY(which, data_size)
+{
 
 /*
 arguments: 
@@ -246,6 +254,33 @@ destroys: a,y,x
 		sta VAR_C
 		jsr SPLICE
 
+}
+
+/*****************************************************************/
+
+.macro MEM_COPY(source, destination, length)
+{
+/**
+
+arguments:
+	source from
+	destination to
+	length: bytes <= 255
+destroys: y,a
+uses: BV7,BV9
+
+*/
+
+			SET_ADDR(source, BV7)					
+			SET_ADDR(destination, BV9)				
+			ldy #length											
+			dey
+	copy:	lda (BV7),y
+			sta (BV9),y
+			dey
+			bpl copy
+
+	
 }
 
 /*****************************************************************/

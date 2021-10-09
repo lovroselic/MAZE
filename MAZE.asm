@@ -9,7 +9,7 @@ http://www.c64os.com/post/6502instructions
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.02.09"
+.const VER	= "0.02.10"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -46,6 +46,7 @@ http://www.c64os.com/post/6502instructions
 		//interrupt end
 
 begin:
+		cld
 		//FillScreen(SCREEN, $E0)
 		//WaitAnyKey()
 
