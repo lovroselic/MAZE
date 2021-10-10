@@ -398,18 +398,6 @@ FILTER_SIDE_PROXIMIY:
 															//first copy PROX_TEMPLATE to proximity
 
 			MEM_COPY(PROX_TEMPLATE, proximity_vectors, 8)
-			//macro MEM_COPY(Source,Destination,Length)
-			/*
-			SET_ADDR(PROX_TEMPLATE, BV7)					//source
-			SET_ADDR(proximity_vectors, BV9)				//destination	
-			ldy #08											//length
-			dey
-	copy:	lda (BV7),y
-			sta (BV9),y
-			dey
-			bpl copy
-			*/
-			//macro end
 
 															//expand direction pointer into head and side pointers
 															//first find out which dimension is not zero in direction_pointer
