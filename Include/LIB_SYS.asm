@@ -72,8 +72,9 @@
 .const  BV10        = $4F       //DEFPNT 
 .const  TEMPX2      = $4D       //OPMASK
 .const  TEMPY2      = $53       //FOUR6
-.const  BV7         = $4E       //DEFPNT 
-.const  BV8         = $4F       //DEFPNT 
+.const  BV7         = $50       //DEFPNT 
+.const  BV8         = $51       //DEFPNT 
+.const  BV0         = $52       //DEFPNT 
 //--------------- LS constants ----------------------------
 .const 	maxCOL 		= 40
 .const 	maxROW 		= 25

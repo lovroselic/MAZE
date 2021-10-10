@@ -13,7 +13,8 @@ memory:
 
 known bugs:
 	retracing over dot
-	can't continue at border, but should
+	side proximity doesn't work
+	/solved?: can't continue at border, but should
 	
 *****************************************************************/
 #import "LS_System.asm"
@@ -376,11 +377,13 @@ FILTER_SIDE_PROXIMIY:
 	start:	
 			SET_ADDR(candidates, BV3)	
 			SET_ADDR(candidates_vectors, BV5)	
+.break
 			lda candidates_length
 			tax												//number of grids yet to check
 			dex												//to zero offset
 
 	each:	
+.break
 			txa
 			asl												//double, because datasize is 2
 			tay												//offset in y (zero based x * datasize)
@@ -401,6 +404,7 @@ FILTER_SIDE_PROXIMIY:
 
 															//expand direction pointer into head and side pointers
 															//first find out which dimension is not zero in direction_pointer
+.break
 			ldy #01											//y?
 			lda direction_pointer,y
 			bne ok											//if not zero, than this is right dimension
@@ -418,6 +422,7 @@ FILTER_SIDE_PROXIMIY:
 			iny
 			sta proximity_vectors,y							//proximity vectors ready
 
+.break
 															//calc location for each proximity vector, from grid_pointer
 			ldy #00
 	repeat:	lda grid_pointer
@@ -433,6 +438,7 @@ FILTER_SIDE_PROXIMIY:
 
 			MOV16(maze_memory_alloc, ZP1)					//move pointer to ZP1
 			CALC_GRID_LOCATION(test_pointer)				//grid address now in ZP1
+.break
 
 			ldy #0
 			lda (ZP1),y
@@ -446,6 +452,7 @@ FILTER_SIDE_PROXIMIY:
 			
 
 	cont:	
+.break
 			dex
 			bmi out										//less than zero, stop
 			jmp each										//loop back, branch too far

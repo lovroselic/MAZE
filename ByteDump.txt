@@ -620,16 +620,16 @@
 0cc2: b1 4b     -         lda (BV5),y
 0cc4: 8d 25 0e  -         sta direction_pointer+1
 0cc7: a9 8b     -         lda #<addr
-0cc9: 85 4e     -         sta X
+0cc9: 85 50     -         sta X
 0ccb: a9 09     -         lda #>addr
-0ccd: 85 4f     -         sta X+1
+0ccd: 85 51     -         sta X+1
 0ccf: a9 3b     -         lda #<addr
 0cd1: 85 4e     -         sta X
 0cd3: a9 0e     -         lda #>addr
 0cd5: 85 4f     -         sta X+1
 0cd7: a0 08     -         ldy #length											
 0cd9: 88        -         dey
-0cda: b1 4e     - copy:   lda (BV7),y
+0cda: b1 50     - copy:   lda (BV7),y
 0cdc: 91 4e     -         sta (BV9),y
 0cde: 88        -         dey
 0cdf: 10 f9     -         bpl copy
