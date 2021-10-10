@@ -75,6 +75,9 @@
 .const  BV7         = $50       //DEFPNT 
 .const  BV8         = $51       //DEFPNT 
 .const  BV0         = $52       //DEFPNT 
+.const  STKPTR1     = $71       //FBUFPT 
+.const  STKPTR2     = $72       //FBUFPT
+
 //--------------- LS constants ----------------------------
 .const 	maxCOL 		= 40
 .const 	maxROW 		= 25

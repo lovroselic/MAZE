@@ -2,7 +2,7 @@
 //----------------------------------------------------------------			
 /*****************************************************************
 LS_System.asm
-v0.05
+v0.06
 
 dependencies:
 	standard includes
@@ -25,7 +25,6 @@ SPLICE:
 			dec VAR_B								//array length - 1, last index
 			ldy VAR_A								//index
 	loop:	cpy VAR_B								//stop if index
-			//bcs out 								//equal or greater than last index
 			bpl out 								//equal or greater than last index
 
 			ldx #0									//number of properties (data_size), start from 0
@@ -197,6 +196,23 @@ skip:	clc
 		lda X+1
 		adc Y+1
 		sta X+1	
+}
+
+/*****************************************************************/
+
+.macro ADD_C_16(X, C){
+/**
+arguments: 
+	X 16 bit address, zero page!!!!
+	C constant, 8 bit
+result in X
+*/
+		clc
+		lda X
+		adc #C
+		sta X
+		bcc out+2
+out:	inc X+1
 }
 
 /*****************************************************************/

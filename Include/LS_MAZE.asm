@@ -47,7 +47,7 @@ arguments: memory: 	memory address of where to create maze
 
 	SET_ADDR(memory, maze_memory_alloc)
 	MOV16(start, maze_start)
-	SET_ADDR(STACK, stack_pointer)
+	SET_ADDR(STACK, STKPTR1)
 
 }
 
@@ -176,8 +176,7 @@ FILTER_IF_OUT:
 			
 	start:
 			SET_ADDR(candidates, BV3)			
-			lda candidates_length
-			tax
+			ldx candidates_length				//number of grids yet to check
 			dex
 	each:	txa
 			asl
@@ -225,8 +224,7 @@ FILTER_IF_DOT:
 
 start:
 			SET_ADDR(candidates, BV3)
-			lda candidates_length	
-			tax											//number of grids yet to check
+			ldx candidates_length						//number of grids yet to check
 			dex
 														//checking each remaining grid
 each:		txa
@@ -277,9 +275,35 @@ PUSH_REST_ON_STACK:
 			dec candidates_length						//dec array length
 														//copy remaining on stack
 			//cont here
+			ldx #0
+each:		ldy #0
+			stx TEMPX									//save x
+			txa											//x = x *2	
+			asl 
+			tax									
+														//grids
+			lda candidates,x							//x
+			sta (STKPTR1),y
+			iny
+			inx
+			lda candidates,x							//y
+			sta (STKPTR1),y
+			ADD_C_16(STKPTR1, 2)
+			dey
+			dex
+														//directions
+			lda candidates_vectors,x					//x
+			sta (STKPTR1),y
+			iny
+			inx
+			lda candidates_vectors,x					//y
+			sta (STKPTR1),y
+			ADD_C_16(STKPTR1, 2)
 
-
-
+			ldx TEMPX									//restore x
+			inx
+			cpx candidates_length
+			bne each
 	out:	rts		
 }
 
@@ -296,8 +320,7 @@ FILTER_IF_CLOSE_PRIMARY:
 	start:	
 			SET_ADDR(candidates, BV3)	
 			SET_ADDR(candidates_vectors, BV5)
-			lda candidates_length
-			tax												//number of grids yet to check
+			ldx candidates_length							//number of grids yet to check
 			dex												//to zero offset
 
 	each:	txa
@@ -364,8 +387,7 @@ FILTER_SIDE_PROXIMIY:
 	start:	
 			SET_ADDR(candidates, BV3)	
 			SET_ADDR(candidates_vectors, BV5)	
-			lda candidates_length
-			tax												//number of grids yet to check
+			ldx candidates_length							//number of grids yet to check
 			dex												//to zero offset
 
 	each:	
@@ -514,7 +536,6 @@ maze_start:					.word 0
 grid_pointer:				.word 0
 direction_pointer:			.word 0
 test_pointer:				.word 0
-stack_pointer:				.word 0
 candidates:
 .for(var i=0; i<4; i++)		.fill 2,0
 candidates_vectors:
