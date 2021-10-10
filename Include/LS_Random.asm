@@ -2,7 +2,7 @@
 //----------------------------------------------------------------			
 /*****************************************************************
 LS_Random.asm
-v0.01
+v0.02
 
 dependencies:
 	standard includes
@@ -89,6 +89,9 @@ result: A (0,1)
 		lda RND2
 		and #%00000001	
 }
+
+/*****************************************************************/
+
 .macro Random4(){
 /*
 result: A (0,3)
@@ -98,6 +101,9 @@ result: A (0,3)
 		lda RND2
 		and #%00000011	
 }
+
+/*****************************************************************/
+
 .macro RandomNumber(start, end){
 /*
 limits: 0 - 32767
@@ -116,6 +122,28 @@ return: WINT: 16-bit int
 		sta ZP2
 		jsr rnd_XY
 }
+
+.macro RandomX(X){
+/**
+limits: 0 - 255
+from 0 (inclusive), to value in X (inclusive)
+arguments: 
+	start -> ZP1, lower inclusive -> 0
+	end -> ZP3, upper inclusive
+return: WINT: 16-bit int
+*/
+
+		lda X	
+		sta ZP3
+		lda #0
+		sta ZP1
+		sta ZP2
+		sta ZP4
+		jsr rnd_XY
+
+}
+
+/*****************************************************************/
 
 .macro SetSIDforRandom(){
 		lda #$ff

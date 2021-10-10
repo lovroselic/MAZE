@@ -9,7 +9,7 @@ http://www.c64os.com/post/6502instructions
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.02.12"
+.const VER	= "0.03.00"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
