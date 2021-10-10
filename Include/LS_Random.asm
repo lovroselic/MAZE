@@ -2,13 +2,15 @@
 //----------------------------------------------------------------			
 /*****************************************************************
 LS_Random.asm
-v0.02
+v0.05
 
 dependencies:
 	standard includes
 memory:
 	dataRND: 5byte
 *****************************************************************/
+/*****************************************************************/
+
 // imports required
 #import "LIB_SYS.asm"
 #import "LIB_Basic.asm"
@@ -19,20 +21,20 @@ memory:
 //--- SUBS -------------------------------------------------------
 
 rnd_XY:
-{			
-//output: random number (0, 32767) in WINT; 
+{
+/**
 
+start inclusive in (ZP1)
+end inclusive in (ZP3)
+output: random number (0, 32767) in WINT; 
 
-			//reseed, to avoid repeated sequence
-			lda #00
-			jsr RND
-			
-			//++end 
+*/						
+										//++end 
 			inc ZP3
 			bne skip1
 			inc ZP4
 skip1:
-			//- start
+										//- start
 			lda ZP3
 			sec
 			sbc ZP1
@@ -43,37 +45,64 @@ skip1:
 toFloat:
 			ldy ZP3
 			lda ZP4
-			jsr GIVAYF //A(h),Y(L) - FAC
-			
+			jsr GIVAYF 					//A(h),Y(L) - FAC
 			ldx #<flt
 			ldy #>flt
-			jsr MOVMF	//store FAC to flt
-				
-			//get actual RND(1)
-			lda #$7f
-			jsr RND
-			
-			//multiply by ++end - start
+			jsr MOVMF					//store FAC to flt		
+			lda #$00					//RND(0)
+			jsr RND						//$E09A
+										//multiply by ++end - start
 			lda #<flt
 			ldy #>flt
-			jsr FMULT
-			
-			//to integer
-			jsr FAINT
-			
-			//FAC to int;
-			jsr AYINT
-			lda $65			
+			jsr FMULT					//Multiplies a number from RAM (A,y) and FAC	
+			jsr FAINT					//to integer
+			jsr AYINT					//fac to signed int HI $64 LO $65
+			lda $65						//FAC mantissa lo
 			clc
-			adc ZP1
+			adc ZP1						//add number to start	
 			sta WINT
-			lda $64
+			lda $64						//FAC mantissa hi
 			adc ZP2
 			sta WINT+1
 over:
-			rts
-			
+			rts			
 }
+
+/*****************************************************************/
+
+rnd_X:
+{
+/**
+
+end inclusive in (ZP3)
+output: random number (0, 255) in WINT; 
+
+*/						
+										//++end 
+			inc ZP3
+			bne toFloat
+			inc ZP4	
+toFloat:
+			ldy ZP3
+			lda ZP4
+			jsr GIVAYF 					//A(h),Y(L) - FAC
+			ldx #<flt
+			ldy #>flt
+			jsr MOVMF					//store FAC to flt		
+			lda #$00					//get actual RND(0)
+			jsr RND						//$E09A
+										//multiply by ++end
+			lda #<flt
+			ldy #>flt
+			jsr FMULT					//Multiplies a number from RAM (A,y) and FAC	
+			jsr FAINT					//to integer
+			jsr AYINT					//fac to signed int HI $64 LO $65
+			lda $65						//FAC mantissa lo
+			sta WINT					
+			rts			
+}
+
+/*****************************************************************/
 //-----------------------DATA-------------------------------
 dataRND: 		* = dataRND "Data RND"
 
@@ -136,11 +165,8 @@ return: WINT: 16-bit int
 		lda X	
 		sta ZP3
 		lda #0
-		sta ZP1
-		sta ZP2
 		sta ZP4
-		jsr rnd_XY
-
+		jsr rnd_X
 }
 
 /*****************************************************************/
@@ -152,4 +178,7 @@ return: WINT: 16-bit int
 		lda #$80
 		sta CTRLREG_V3
 }
+
+/*****************************************************************/
+
 //----------------------------------------------------------------	

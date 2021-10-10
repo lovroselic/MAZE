@@ -9,7 +9,7 @@ http://www.c64os.com/post/6502instructions
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.03.00"
+.const VER	= "0.03.01"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -47,49 +47,14 @@ http://www.c64os.com/post/6502instructions
 
 begin:
 		cld
-		//FillScreen(SCREEN, $E0)
-		//WaitAnyKey()
-
 init:
-		SetSIDforRandom()
 		RandomNumber(1, 38)
-		//debug
-		//lda #38
-		//sta WINT
-		//
 		MOV8(WINT,startX)
 		RandomNumber(1, 23)
-		//debug
-		//lda #23
-		//sta WINT
-		//
 		MOV8(WINT,startY)
 
 		INIT_MAZE(SCREEN, startX)
-
 		jsr MAZE
-		//MAZE(startX)
-
-		//WaitAnyKey()
-		//debug
-		/*
-		Console8(startX)
-		Comma()
-		Console8(startY)
-		EndLine()
-		EndLine()
-		*/
-		//debug candidates
-		/*
-		.for(var i = 0;i<4;i++){
-			.var t = candidates + 2*i
-			Console8(t)
-			Comma()
-			Console8(t+1)
-			EndLine()
-		}
-		*/
-		
 		
 end:
 		WaitAnyKey()
@@ -123,7 +88,7 @@ irqcode:
 mode1:
 	lda #$01
 	sta modeflag
-	lda #LIGHTBLUE
+	lda #BLUE
 	sta BORDER
 	lda #startRaster
 	sta RASTER_COUNTER
@@ -133,7 +98,7 @@ mode1:
 mode2:
 	lda #$00
 	sta modeflag
-	lda #BLUE
+	lda #LIGHTBLUE
 	sta BORDER
 	lda #endRaster
 	sta RASTER_COUNTER
