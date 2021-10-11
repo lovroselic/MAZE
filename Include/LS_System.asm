@@ -202,6 +202,7 @@ skip:	clc
 
 .macro ADD_C_16(X, C){
 /**
+add constant to address in X
 arguments: 
 	X 16 bit address, zero page!!!!
 	C constant, 8 bit
@@ -213,6 +214,25 @@ result in X
 		sta X
 		bcc out+2
 out:	inc X+1
+}
+
+/*****************************************************************/
+
+.macro SUB_C_16(X,C){
+/**
+subtract  constant to address in X
+arguments: 
+	X 16 bit address, zero page!!!!
+	C constant, 8 bit
+result in X
+*/
+
+		lda X
+		sec
+		sbc #C
+		sta X
+		bcs out+2
+out:	dec X+1
 }
 
 /*****************************************************************/

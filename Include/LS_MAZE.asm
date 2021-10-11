@@ -475,10 +475,28 @@ CANDIDATE_FROM_STACK:
 {
 /**
 
-
-	
 */	
-	out: 	rts
+														//direction
+				SUB_C_16(STKPTR1, 2)					//stackpointer - 2
+				ldy #0									//x
+				lda (STKPTR1),y
+				sta candidates_vectors,y
+				iny										//y
+				lda (STKPTR1),y
+				sta candidates_vectors,y
+
+														//grid
+				SUB_C_16(STKPTR1, 2)					//stackpointer - 2
+				ldy #0									//x
+				lda (STKPTR1),y
+				sta candidates,y
+				iny										//y
+				lda (STKPTR1),y
+				sta candidates,y
+
+				lda #01
+				sta candidates_length
+	out: 		rts
 }
 
 
@@ -536,15 +554,27 @@ outer:
 	S_LOOP:
 															//check stack pointer: STKPZR1 vs STACK
 				lda STKPTR1
-				cmp <STACK
+				cmp #<STACK
 				bne cont
 				lda STKPTR2
-				cmp >STACK
+				cmp #>STACK
 				bne cont
-				rts											//stack pointer == STACK, stack is empty
+				jmp quit									//stack pointer == STACK, stack is empty
 
 		cont:
 				jsr CANDIDATE_FROM_STACK					//take on grid an its direction from stack
+				jsr FILTER_IF_CLOSE_PRIMARY					//recheck if they are still 'safe'
+				jsr FILTER_SIDE_PROXIMIY					//in terms of proximity
+
+				lda candidates_length						//check if it is still ok
+				cmp #00										//if zero break; 
+				beq S_LOOP									//no, find another
+															//yes
+				lda candidates								//set it to maze_start
+				sta maze_start
+				lda candidates+1
+				sta maze_start+1
+				jmp P_LOOP									//make next branch
 quit:
 				rts
 }
