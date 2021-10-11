@@ -3,25 +3,23 @@
 //----------------------------------------------------------------			
 /*****************************************************************
 LS_MAZE.asm
-v0.13
+v0.14
 
 MAZE structs and methods
 
 dependencies:
 	standard includes
 memory:
-
+	C000 stack
 known bugs:
-	retracing over dot
-	side proximity doesn't work
-	/solved?: can't continue at border, but should
+
 	
 *****************************************************************/
+
 #import "LS_System.asm"
-#import "LS_ConsolePrint.asm"
 #import "LS_GRID.asm"
 #import "LS_Random.asm"
-#import "LS_Keyboard.asm"
+
 //-----------------------CONST-----------------------------------
 
 .const WALL 	= $E0

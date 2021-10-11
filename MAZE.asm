@@ -9,7 +9,7 @@ http://www.c64os.com/post/6502instructions
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.05.00"
+.const VER	= "0.05.01"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -58,6 +58,7 @@ init:
 		
 end:
 		WaitAnyKey()
+		jmp init
 		rts
 
 
@@ -66,7 +67,6 @@ imports:	* = imports "Imports"
 
 //------ IMPORTS ----
 
-#import "Include\LS_ConsolePrint.asm" 
 #import "Include\LS_Interrupt.asm"
 #import "Include\LS_System.asm"
 #import "Include\LS_Keyboard.asm"
