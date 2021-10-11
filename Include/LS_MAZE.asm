@@ -372,8 +372,6 @@ FILTER_SIDE_PROXIMIY:
 			rts												//else exit, if no candidates
 
 	start:	
-			SET_ADDR(candidates, BV3)	
-			SET_ADDR(candidates_vectors, BV5)	
 			ldx candidates_length							//number of grids yet to check
 			dex												//to zero offset
 
@@ -382,14 +380,14 @@ FILTER_SIDE_PROXIMIY:
 			asl												//double, because datasize is 2
 			tay												//offset in y (zero based x * datasize)
 
-			lda (BV3),y
+			lda candidates, y
 			sta grid_pointer
-			lda (BV5),y
+			lda candidates_vectors,y
 			sta direction_pointer
 			iny
-			lda (BV3),y
+			lda candidates, y
 			sta grid_pointer+1
-			lda (BV5),y
+			lda candidates_vectors,y
 			sta direction_pointer+1
 															//set directions table
 															//first copy PROX_TEMPLATE to proximity
