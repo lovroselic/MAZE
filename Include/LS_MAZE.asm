@@ -166,8 +166,7 @@ FILTER_IF_OUT:
 			bcs start
 			rts
 			
-	start:
-			SET_ADDR(candidates, BV3)			
+	start:		
 			ldx candidates_length				//number of grids yet to check
 			dex
 	each:	txa
@@ -175,7 +174,7 @@ FILTER_IF_OUT:
 			tay
 			clc
 												//x
-			lda (BV3),y	
+			lda candidates,y
 			cmp #MAX_X+1
 			bcs shift
 			cmp #MIN_X
@@ -183,7 +182,7 @@ FILTER_IF_OUT:
 												//y
 			iny
 			clc
-			lda (BV3),y
+			lda candidates,y
 			cmp #MAX_Y+1
 			bcs shift
 			cmp #MIN_Y
@@ -215,7 +214,6 @@ FILTER_IF_DOT:
 			rts
 
 start:
-			SET_ADDR(candidates, BV3)
 			ldx candidates_length						//number of grids yet to check
 			dex
 														//checking each remaining grid
@@ -223,11 +221,11 @@ each:		txa
 			asl
 			tay
 														//x
-			lda (BV3),y
+			lda candidates,y
 			sta grid_pointer
 														//y
 			iny
-			lda (BV3),y
+			lda candidates,y
 			sta grid_pointer+1
 			MOV16(maze_memory_alloc, ZP1)
 			CALC_GRID_LOCATION(grid_pointer)			//grid address now in ZP1
@@ -310,8 +308,6 @@ FILTER_IF_CLOSE_PRIMARY:
 			rts												//else exit, if no candidates
 
 	start:	
-			SET_ADDR(candidates, BV3)	
-			SET_ADDR(candidates_vectors, BV5)
 			ldx candidates_length							//number of grids yet to check
 			dex												//to zero offset
 
@@ -320,17 +316,16 @@ FILTER_IF_CLOSE_PRIMARY:
 			tay												//offset in y (zero based x * datasize)
 
 															//x
-			lda (BV3),y
+			lda candidates,y
 			sta grid_pointer
-			lda (BV5),y
+			lda candidates_vectors,y
 			sta direction_pointer
 															//y
 			iny
-			lda (BV3),y
+			lda candidates,y
 			sta grid_pointer+1
-			lda (BV5),y
+			lda candidates_vectors,y
 			sta direction_pointer+1
-
 															//add dir to grid
 			clc
 			lda grid_pointer
