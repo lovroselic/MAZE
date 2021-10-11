@@ -119,8 +119,6 @@ MAZE_DOT:
 
 POINTERS_FROM_START:
 {
-			SET_ADDR(candidates, BV3)
-			SET_ADDR(BASIC_DIRS, ZP3)
 												//calc candidates
 			ldx #03
 	add:	txa
@@ -129,28 +127,27 @@ POINTERS_FROM_START:
 												//x
 			clc
 			lda maze_start
-			adc (ZP3),y
-			sta (BV3),y
+			adc BASIC_DIRS,y
+			sta candidates,y
 			iny
 												//y
 			clc
 			lda maze_start+1
-			adc (ZP3),y
-			sta (BV3),y
+			adc BASIC_DIRS,y
+			sta candidates,y
 			dex
 			bpl add
 
 												//copy vectors
-			SET_ADDR(candidates_vectors, BV5)
 			ldx #03
 	copy:	txa
 			asl
 			tay	
-			lda (ZP3),y
-			sta (BV5),y
+			lda BASIC_DIRS,y
+			sta candidates_vectors,y
 			iny
-			lda (ZP3),y
-			sta (BV5),y
+			lda BASIC_DIRS,y
+			sta candidates_vectors,y
 			dex
 			bpl copy
 
