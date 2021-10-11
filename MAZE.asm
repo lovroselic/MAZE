@@ -9,7 +9,7 @@ http://www.c64os.com/post/6502instructions
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.05.04"
+.const VER	= "0.06.00"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -48,6 +48,7 @@ http://www.c64os.com/post/6502instructions
 begin:
 		cld
 init:
+		MAZE_BIAS(2)
 		RandomNumber(1, 38)
 		MOV8(WINT,startX)
 		RandomNumber(1, 23)

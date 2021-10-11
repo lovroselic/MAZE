@@ -3,7 +3,7 @@
 //----------------------------------------------------------------			
 /*****************************************************************
 LS_MAZE.asm
-v0.14
+v0.15
 
 MAZE structs and methods
 
@@ -45,6 +45,31 @@ arguments: memory: 	memory address of where to create maze
 	SET_ADDR(STACK, STKPTR1)
 
 }
+
+/*****************************************************************/
+
+.macro MAZE_BIAS(B){
+/**
+arguments: bias
+*/
+		lda #B
+		sta bias
+		lda #00
+		sta bias_counter
+}
+
+/*****************************************************************/
+
+.macro BIAS_NEXT(){
+		inc bias_counter
+		lda bias_counter
+		cmp bias
+		bne out+3
+		lda #00
+out:	sta bias_counter
+}
+
+/*****************************************************************/
 
 .macro CALC_GRID_LOCATION(grid){
 	
@@ -264,7 +289,6 @@ PUSH_REST_ON_STACK:
 			SPLICE_ARRAY(candidates_vectors, 2)			//splice candidates_vectors at x, uses BV1
 			dec candidates_length						//dec array length
 														//copy remaining on stack
-			//cont here
 			ldx #0
 each:		ldy #0
 			stx TEMPX									//save x
@@ -461,9 +485,6 @@ FILTER_SIDE_PROXIMIY:
 
 CANDIDATE_FROM_STACK:
 {
-/**
-
-*/	
 														//direction
 				SUB_C_16(STKPTR1, 2)					//stackpointer - 2
 				ldy #0									//x
@@ -487,6 +508,32 @@ CANDIDATE_FROM_STACK:
 	out: 		rts
 }
 
+/*****************************************************************/
+
+CHECK_BIAS:
+/** returns found index or -1 in accumulator */
+{
+				ldx candidates_length
+				dex
+	each:		txa
+				asl 								// length to offset in
+				tay									// y
+				lda candidates_vectors,y			// x dim
+				cmp bias_direction
+				bne not 							//not same
+				iny
+				lda	candidates_vectors,y			// y dim	
+				cmp bias_direction+1				//the same
+				beq found
+	not:		dex
+				bpl each
+				lda #-1								//not found: -1
+				rts
+	found:		txa									//index in acc
+				rts
+
+
+}
 
 /*****************************************************************/
 //--- MAIN -------------------------------------------------------
@@ -510,8 +557,19 @@ outer:
 				bcs then									//go to else/then
 				lda #0										//otherwise, index->0 in A									
 				jmp skip_else
-		then:												//random index (, candidates length-1)
-				lda candidates_length
+		then:	
+															//check bias
+				lda bias_counter
+				cmp #00
+				beq select_random							//use random, not bias
+															//use bias
+				jsr CHECK_BIAS								//index in a, or -1 if not found
+				cmp #-1
+				bne skip_else								//not -1, select this direction
+select_random:	
+				lda #0										//reset bias counter when selection is random	
+				sta bias_counter
+				lda candidates_length						//random index (, candidates length-1)
 				tax
 				dex
 				stx ZP0
@@ -522,13 +580,17 @@ outer:
 				sta ZP0										//store index in ZP0	
 				asl 										//datasize=2	
 				tay											//offset in y
-				SET_ADDR(candidates, BV1)
 															//selected candidate to maze_start 
-				lda (BV1),y
+				lda candidates,y
 				sta maze_start
+				lda candidates_vectors,y
+				sta bias_direction
 				iny
-				lda (BV1),y
+				lda candidates,y
 				sta maze_start+1
+				lda candidates_vectors,y
+				sta bias_direction+1
+				BIAS_NEXT()
 															//store remaining candidates on STACK
 				lda candidates_length
 				cmp #02										//if there are 2 or more, selected has not been discarded yet
@@ -570,7 +632,7 @@ quit:
 //-----------------------MEMORY-------------------------------
 
 MAZE_memory: 				* = MAZE_memory "MAZE Memory"
-maze_memory_alloc:			.word $0040 	//screen by default, safe
+maze_memory_alloc:			.word $0004 					//screen by default
 maze_start:					.word 0
 grid_pointer:				.word 0
 direction_pointer:			.word 0
@@ -582,8 +644,8 @@ candidates_vectors:
 candidates_length: 			.byte 0
 proximity_vectors:
 .for(var i=0; i<4; i++)		.fill 2,0
-
-debug:						.text ". "
-							brk
+bias:						.byte 2
+bias_counter:				.byte 0
+bias_direction:				.word 0
 
 //----------------------------------------------------------------	
