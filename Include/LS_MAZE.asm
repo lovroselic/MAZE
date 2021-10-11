@@ -26,8 +26,7 @@ known bugs:
 
 .const WALL 	= $E0
 .const DOT 		= $20
-.const TEST		= $21
-.const STACK	= $C000
+.label STACK	= $C000
 .const DSIZE	= 4
 .const MAX_X	= 38
 .const MIN_X	= 1
@@ -42,8 +41,6 @@ known bugs:
 arguments: memory: 	memory address of where to create maze
 					default $0400 (screen)
 */
-
-	.const STACK	= $C000
 
 	SET_ADDR(memory, maze_memory_alloc)
 	MOV16(start, maze_start)
@@ -472,6 +469,20 @@ FILTER_SIDE_PROXIMIY:
 			jmp cont									//return to loop
 }
 
+/*****************************************************************/
+
+CANDIDATE_FROM_STACK:
+{
+/**
+
+
+	
+*/	
+	out: 	rts
+}
+
+
+/*****************************************************************/
 //--- MAIN -------------------------------------------------------
 MAZE:
 {
@@ -517,15 +528,25 @@ outer:
 				cmp #02										//if there are 2 or more, selected has not been discarded yet
 				bcc repeat_P								//no, repeat loop
 															//yes
-				jsr PUSH_REST_ON_STACK						//!!!! incomplete !!!!							
+				jsr PUSH_REST_ON_STACK													
 			
 	repeat_P:	jmp P_LOOP
 	
 	/** take from stack */
 	S_LOOP:
+															//check stack pointer: STKPZR1 vs STACK
+				lda STKPTR1
+				cmp <STACK
+				bne cont
+				lda STKPTR2
+				cmp >STACK
+				bne cont
+				rts											//stack pointer == STACK, stack is empty
 
+		cont:
+				jsr CANDIDATE_FROM_STACK					//take on grid an its direction from stack
 quit:
-			rts
+				rts
 }
 
 //-----------------------MEMORY-------------------------------
