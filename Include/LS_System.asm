@@ -149,8 +149,6 @@ ram:		ldy #$40
 			ora #%00001100	//$3000
 			sta VMCSB
 			rts
-
-
 }
 
 

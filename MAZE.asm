@@ -9,14 +9,11 @@ http://www.c64os.com/post/6502instructions
 https://oldskoolcoder.co.uk/the-vic-ii-addressing-system/
 https://www.georg-rottensteiner.de/c64/projectj/step2/step2.html
 https://codebase64.org/doku.php?id=base:vicii_memory_organizing
-https://www.c64-wiki.com/wiki/Character_set
-https://www.lemon64.com/forum/viewtopic.php?t=75102
-
 
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.06.01"
+.const VER	= "0.07.00"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -45,6 +42,9 @@ https://www.lemon64.com/forum/viewtopic.php?t=75102
 setup:
 		jsr COPY_CHAR_ROM_TO_RAM
 		jsr set_bricks
+		FillColor(LIGHTGREY)
+		lda #BLACK
+		sta BACKGROUND
 
 
 interrupt:							//interupt
@@ -72,7 +72,7 @@ init:
 		
 end:
 		WaitAnyKey()
-		//jmp init
+		jmp init
 		rts
 
 
@@ -103,7 +103,7 @@ irqcode:
 mode1:
 	lda #$01
 	sta modeflag
-	lda #BLUE
+	lda #BLACK
 	sta BORDER
 	lda #startRaster
 	sta RASTER_COUNTER
@@ -113,7 +113,7 @@ mode1:
 mode2:
 	lda #$00
 	sta modeflag
-	lda #LIGHTBLUE
+	lda #LIGHTGREY
 	sta BORDER
 	lda #endRaster
 	sta RASTER_COUNTER
@@ -146,6 +146,7 @@ data: 		* = data "Data"
 modeflag:		.byte 0
 startX:			.byte 0
 startY:			.byte 0
-brick_data: 	.byte $ee,$00,$77,$00,$dd,$00,$bb,$00
+//brick_data: 	.byte $ee,$00,$77,$00,$dd,$00,$bb,$00
+brick_data: 	.byte $dd,$c1,$38,$bb,$bb,$83,$1c,$dd
 //--------------------MACROS--------------------------------
 
