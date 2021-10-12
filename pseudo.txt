@@ -12,15 +12,3 @@ do
 		(repeat if not safe)
 	while pointer is not safe
 while true
-
------------------------------
-safe pointer::
-
-check dir for proximity
-if ok cont
-from x to y as i:
-	if i === not zero:
-		apply sequence 1,1,0,0 to source + 0 + dataSize offset
-	else:
-		apply sequence -1,1,-1,1
-check all 4 candidates for proximity

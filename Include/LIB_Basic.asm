@@ -23,3 +23,10 @@
 .const 	SWFAC		= $BC44		//signed W $62,63 Hi, LO to FAC
 .const	GIVAYF		= $B391		//Convert 16-Bit Signed Integer to Floating Point A(HI), Y(Lo)
 
+.label 	MOVE_BYTES 	= $A3BF		//move bytes, 
+								/**
+								$5F/$60 source start address
+								$5A/$5B source end address
+								$58/$59 destination end address 
+								*/
+

@@ -12,6 +12,7 @@ memory:
 *****************************************************************/
 #import "LIB_SYS.asm"
 #import "LIB_Basic.asm"
+#import "LIB_VIC.asm"
 //-----------------------CONST-----------------------------------
 
 //--- SUBS -------------------------------------------------------
@@ -105,6 +106,53 @@ skip:		ror
 end:		tya
 			rts
 }
+
+/*****************************************************************/
+
+
+COPY_CHAR_ROM_TO_RAM:
+/** 
+copy char ROM to RAM 
+RAM defalut: $3000
+modify ram+1 to change
+*/
+{
+			
+			sei
+
+			lda $01			//make ROM visible
+			and #$FB
+			sta $01 
+
+			lda #00
+			sta $5f			//block start
+			sta $5a			//block end
+			sta $58			//destination end
+
+			ldy #$d0
+			sty $60			//block start
+			ldy #$e0		
+			sty $5b			//block end
+ram:		ldy #$40
+			sty $59			//destination end
+
+			jsr MOVE_BYTES
+
+			lda $01			//hide rom
+			ora #$04
+			sta $01
+			cli
+			
+							//set charmem
+			lda VMCSB
+			and #%11110000
+			ora #%00001100	//$3000
+			sta VMCSB
+			rts
+
+
+}
+
 
 /*****************************************************************/
 

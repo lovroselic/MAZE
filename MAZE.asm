@@ -2,14 +2,21 @@
 	MAZE demo
 	in progress
 
+https://www.pagetable.com/c64ref/c64disasm/
 http://unusedino.de/ec64/technical/project64/mapping_c64.html
 https://www.c64-wiki.com/wiki/Zeropage
 http://www.c64os.com/post/6502instructions
+https://oldskoolcoder.co.uk/the-vic-ii-addressing-system/
+https://www.georg-rottensteiner.de/c64/projectj/step2/step2.html
+https://codebase64.org/doku.php?id=base:vicii_memory_organizing
+https://www.c64-wiki.com/wiki/Character_set
+https://www.lemon64.com/forum/viewtopic.php?t=75102
+
 
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.06.00"
+.const VER	= "0.06.01"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -31,10 +38,16 @@ http://www.c64os.com/post/6502instructions
 .const endRaster = 250
 
 //-----------------------START------------------------------
+/*****************************************************************/
 
 		* = $0810 "Main"
 
-		//interupt
+setup:
+		jsr COPY_CHAR_ROM_TO_RAM
+		jsr set_bricks
+
+
+interrupt:							//interupt
 		sei							//set interrupt
 		TurnOffCiaInterrupt()
 		EnableRasterInterrupt()
@@ -43,7 +56,7 @@ http://www.c64os.com/post/6502instructions
 		sta RASTER_COUNTER
 		SetIrqVector(irqcode)
 		cli
-		//interrupt end
+									//interrupt end
 
 begin:
 		cld
@@ -59,11 +72,12 @@ init:
 		
 end:
 		WaitAnyKey()
-		jmp init
+		//jmp init
 		rts
 
 
 //-----------------------SUBS-------------------------------
+
 imports:	* = imports "Imports"
 
 //------ IMPORTS ----
@@ -107,6 +121,19 @@ mode2:
 	ExitInterrupt()
 }
 
+/*****************************************************************/
+set_bricks:
+{
+			.var char_offset = $3000 + 0 * 8		//@ screencode = 0
+			ldx #00
+copy:		lda brick_data,x
+			sta char_offset,x
+			inx
+			cpx #08
+			bne copy
+			rts
+}
+
 
 //-----------------------TEXT-------------------------------
 
@@ -119,6 +146,6 @@ data: 		* = data "Data"
 modeflag:		.byte 0
 startX:			.byte 0
 startY:			.byte 0
-
+brick_data: 	.byte $ee,$00,$77,$00,$dd,$00,$bb,$00
 //--------------------MACROS--------------------------------
 

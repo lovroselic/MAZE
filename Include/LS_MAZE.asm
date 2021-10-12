@@ -22,7 +22,8 @@ known bugs:
 
 //-----------------------CONST-----------------------------------
 
-.const WALL 	= $E0
+//.const WALL 	= $E0
+.const WALL 	= $00
 .const DOT 		= $20
 .label STACK	= $C000
 .const DSIZE	= 4
