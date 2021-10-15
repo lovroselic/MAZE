@@ -45,51 +45,51 @@
 0860: 8d 60 0f  -         sta bias
 0863: a9 00     -         lda #00
 0865: 8d 61 0f  -         sta bias_counter
-0868: a9 26     -         lda #<end	
-086a: 85 fd     -         sta ZP3
-086c: a9 00     -         lda #>end
-086e: 85 fe     -         sta ZP4
-0870: a9 01     -         lda #<start
-0872: 85 fb     -         sta ZP1
-0874: a9 00     -         lda #>start
-0876: 85 fc     -         sta ZP2
-0878: 20 6a 09  -         jsr rnd_XY
-087b: a5 14     -         lda X
-087d: 8d aa 0f  -         sta Y
-0880: a9 17     -         lda #<end	
-0882: 85 fd     -         sta ZP3
-0884: a9 00     -         lda #>end
-0886: 85 fe     -         sta ZP4
-0888: a9 01     -         lda #<start
-088a: 85 fb     -         sta ZP1
-088c: a9 00     -         lda #>start
-088e: 85 fc     -         sta ZP2
-0890: 20 6a 09  -         jsr rnd_XY
-0893: a5 14     -         lda X
-0895: 8d ab 0f  -         sta Y
-0898: a9 00     -         lda #<addr
-089a: 8d 3d 0f  -         sta X
-089d: a9 04     -         lda #>addr
-089f: 8d 3e 0f  -         sta X+1
-08a2: ad aa 0f  -         lda X
-08a5: 8d 3f 0f  -         sta Y
-08a8: ad ab 0f  -         lda X + 1
-08ab: 8d 40 0f  -         sta Y + 1
-08ae: a9 00     -         lda #<addr
-08b0: 85 71     -         sta X
-08b2: a9 c0     -         lda #>addr
-08b4: 85 72     -         sta X+1
-08b6: a9 00     -         lda #<addr
-08b8: 85 5c     -         sta X
-08ba: a9 c4     -         lda #>addr
-08bc: 85 5d     -         sta X+1
-08be: a9 00     -         lda #<addr
-08c0: 85 5e     -         sta X
-08c2: a9 c5     -         lda #>addr
-08c4: 85 5f     -         sta X+1
-08c6: a9 00     -         lda #00
-08c8: 8d 64 0f  -         sta DE_counter
-08cb: 8d 65 0f  -         sta REM_DE_counter
+0868: a9 00     -         lda #<addr
+086a: 8d 3d 0f  -         sta X
+086d: a9 04     -         lda #>addr
+086f: 8d 3e 0f  -         sta X+1
+0872: a9 00     -         lda #<addr
+0874: 85 71     -         sta X
+0876: a9 c0     -         lda #>addr
+0878: 85 72     -         sta X+1
+087a: a9 00     -         lda #<addr
+087c: 85 5c     -         sta X
+087e: a9 c4     -         lda #>addr
+0880: 85 5d     -         sta X+1
+0882: a9 00     -         lda #<addr
+0884: 85 5e     -         sta X
+0886: a9 c5     -         lda #>addr
+0888: 85 5f     -         sta X+1
+088a: a9 00     -         lda #00
+088c: 8d 64 0f  -         sta DE_counter
+088f: 8d 65 0f  -         sta REM_DE_counter
+0892: a9 26     -         lda #<end	
+0894: 85 fd     -         sta ZP3
+0896: a9 00     -         lda #>end
+0898: 85 fe     -         sta ZP4
+089a: a9 01     -         lda #<start
+089c: 85 fb     -         sta ZP1
+089e: a9 00     -         lda #>start
+08a0: 85 fc     -         sta ZP2
+08a2: 20 6a 09  -         jsr rnd_XY
+08a5: a5 14     -         lda X
+08a7: 8d aa 0f  -         sta Y
+08aa: a9 17     -         lda #<end	
+08ac: 85 fd     -         sta ZP3
+08ae: a9 00     -         lda #>end
+08b0: 85 fe     -         sta ZP4
+08b2: a9 01     -         lda #<start
+08b4: 85 fb     -         sta ZP1
+08b6: a9 00     -         lda #>start
+08b8: 85 fc     -         sta ZP2
+08ba: 20 6a 09  -         jsr rnd_XY
+08bd: a5 14     -         lda X
+08bf: 8d ab 0f  -         sta Y
+08c2: ad aa 0f  -         lda X
+08c5: 8d 3f 0f  -         sta Y
+08c8: ad ab 0f  -         lda X + 1
+08cb: 8d 40 0f  -         sta Y + 1
 08ce: 20 7f 0e  -         jsr MAZE
 08d1: 20 7e 0e  -         jsr CONNECT_DEAD_ENDS
 08d4: a5 c5     - end,key:lda LSTX		//get character in A

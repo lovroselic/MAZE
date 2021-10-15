@@ -62,12 +62,15 @@ begin:
 		cld
 init:
 		MAZE_BIAS(2)
+		INIT_MAZE(SCREEN)
+		//when rooms, this should be changed
 		RandomNumber(1, 38)
 		MOV8(WINT,startX)
 		RandomNumber(1, 23)
 		MOV8(WINT,startY)
-
-		INIT_MAZE(SCREEN, startX)
+		//
+		
+		MOV16(startX, maze_start)
 		jsr MAZE
 		jsr CONNECT_DEAD_ENDS
 		

@@ -36,7 +36,7 @@ known bugs:
 
 //-----------------------MACROS-----------------------------
 
-.macro INIT_MAZE(memory, start){
+.macro INIT_MAZE(memory){
 
 /*
 arguments: memory: 	memory address of where to create maze
@@ -44,7 +44,7 @@ arguments: memory: 	memory address of where to create maze
 */
 
 	SET_ADDR(memory, maze_memory_alloc)
-	MOV16(start, maze_start)
+	//MOV16(start, maze_start)
 	SET_ADDR(STACK, STKPTR1)
 	//dead end stacks
 	SET_ADDR(DEAD_END_STACK, STKPTR3)
