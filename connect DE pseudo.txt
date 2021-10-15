@@ -17,6 +17,6 @@ for each DE:
                 //find number of connections (number of dot grids for 4 dirs) is at least 2
                 bridge is possible, push it on selection stack
     check selection stack
-    if length, create random dor
+    if length, create random dot
     else push DE on another stack
         
