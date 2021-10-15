@@ -31,6 +31,8 @@ known bugs:
 .const MIN_X	= 1
 .const MAX_Y 	= 23
 .const MIN_Y 	= 1
+.label DEAD_END_STACK 	= $C400 	//max 256 bytes expected
+.label DE_REMAINDER		= $C500
 
 //-----------------------MACROS-----------------------------
 
@@ -44,6 +46,12 @@ arguments: memory: 	memory address of where to create maze
 	SET_ADDR(memory, maze_memory_alloc)
 	MOV16(start, maze_start)
 	SET_ADDR(STACK, STKPTR1)
+	//dead end stacks
+	SET_ADDR(DEAD_END_STACK, STKPTR3)
+	SET_ADDR(DE_REMAINDER, STKPTR5)
+	lda #00
+	sta DE_counter
+	sta REM_DE_counter
 
 }
 
@@ -537,10 +545,42 @@ CHECK_BIAS:
 }
 
 /*****************************************************************/
+STORE_DEAD_END:
+/**
+	DE pointer in STKPTR3
+	data size 2
+*/
+{
+				ldy #0
+				lda maze_start			//x
+				sta (STKPTR3),y
+				iny
+				lda maze_start+1		//y
+				sta (STKPTR3),y
+				inc DE_counter			//assumption always less than 255
+				ADD_C_16(STKPTR3, 2)
+	out:		rts
+}
+
+/*****************************************************************/
+
+CONNECT_DEAD_ENDS: {
+/**
+	expects dead ends pointer at (datasize 2) at STKPTR3
+	DE_counter (< 256)
+*/
+	//check if still DE (only one grid is dot, rest are wall)
+
+	out:		rts
+}
+
+/*****************************************************************/
 //--- MAIN -------------------------------------------------------
 MAZE:
 {
 				jsr MAZE_FILL
+				//start grid might be DE!!
+				jsr STORE_DEAD_END
 outer:
 	/** single branch loop */
 	P_LOOP:
@@ -553,8 +593,13 @@ outer:
 															//select candidate
 				lda candidates_length						//check how many we have
 				cmp #00										//if zero break;
-				beq S_LOOP									//goto stack loop
-				cmp #02										//if it is two or more
+				//beq S_LOOP								//goto stack loop
+				bne more									//more than 0
+															//zero options
+				jsr STORE_DEAD_END							//store dead end
+				jmp S_LOOP
+
+		more:	cmp #02										//if it is two or more
 				bcs then									//go to else/then
 				lda #0										//otherwise, index->0 in A									
 				jmp skip_else
@@ -648,5 +693,6 @@ proximity_vectors:
 bias:						.byte 2
 bias_counter:				.byte 0
 bias_direction:				.word 0
-
+DE_counter:					.byte 0
+REM_DE_counter:				.byte 0
 //----------------------------------------------------------------	

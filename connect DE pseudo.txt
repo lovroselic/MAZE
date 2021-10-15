@@ -1,0 +1,22 @@
+
+for each DE:
+    recheck if still DE:
+        test 4 dirs
+            only one grid is dot, others are wall
+                (posibility to store DE dir)
+
+    init selection stack            
+    for each dir:
+        test if candidate (bridge) is wall
+        bridge is not out
+        prolong in the same direction -> test
+            test must not be out
+            test must be dot
+            test most not be in a room
+            if both true: 
+                //find number of connections (number of dot grids for 4 dirs) is at least 2
+                bridge is possible, push it on selection stack
+    check selection stack
+    if length, create random dor
+    else push DE on another stack
+        

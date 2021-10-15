@@ -77,6 +77,10 @@
 .const  BV0         = $52       //DEFPNT 
 .const  STKPTR1     = $71       //FBUFPT 
 .const  STKPTR2     = $72       //FBUFPT
+.label  STKPTR3     = $5C       //TAN FP accumulator
+.label  STKPTR4     = $5D       //TAN FP accumulator
+.label  STKPTR5     = $5E       //TAN FP accumulator
+.label  STKPTR6     = $5F       //TAN FP accumulator
 
 //--------------- LS constants ----------------------------
 .const 	maxCOL 		= 40
