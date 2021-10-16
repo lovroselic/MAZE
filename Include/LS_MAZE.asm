@@ -33,6 +33,8 @@ known bugs:
 .const MIN_Y 	= 1
 .label DEAD_END_STACK 	= $C400 	//max 256 bytes expected
 .label DE_REMAINDER		= $C500
+.const MIN_W	= 3
+.const MAX_W	= 4
 
 //-----------------------MACROS-----------------------------
 
@@ -52,6 +54,9 @@ arguments: memory: 	memory address of where to create maze
 	lda #00
 	sta DE_counter
 	sta REM_DE_counter
+
+	//fill
+	jsr MAZE_FILL
 
 }
 
@@ -138,7 +143,10 @@ fill:
 /*****************************************************************/
 
 MAZE_DOT:
-/** assumes start grid set */
+/** 
+assumes start grid set 
+uses ZP1,y
+*/
 {
 			MOV16(maze_memory_alloc, ZP1)
 			CALC_GRID_LOCATION(maze_start)
@@ -147,6 +155,78 @@ MAZE_DOT:
 			ldy #0
 			sta (ZP1),y
 			rts
+}
+
+/*****************************************************************/
+
+ROOMS: 
+/** room creation wrapper */
+{
+			jsr MAKE_ROOMS
+			jsr PAINT_ROOMS
+			rts
+}
+
+/*****************************************************************/
+
+PAINT_ROOMS:
+/** */
+{
+			ldx #00
+	each:	stx TEMPX				//each room
+			txa
+			asl
+			asl
+			tay
+							
+			lda rooms,y				//get top left x of room
+			sta BV9
+			iny
+			lda rooms,y				//get top left y of room
+			sta BV10
+			iny
+			lda rooms,y 			//w
+			sta ZP0
+			iny
+			lda rooms,y 			//h
+			sta BV0
+									//cal call dots
+			ldx #0
+	cont_w:		ldy #0
+	cont_h:
+				//bv9 +x -> maze start
+				stx TEMPA1
+				lda BV9
+				clc
+				adc TEMPA1
+				sta maze_start
+
+				//b910 +y ->maze start+1
+				sty TEMPA1
+				lda BV10
+				clc
+				adc TEMPA1
+				sta maze_start+1
+
+				sty TEMPY
+				
+				//maze_dot
+				jsr MAZE_DOT
+
+				ldy TEMPY
+				iny
+				cpy BV0
+				bne cont_h
+			inx
+			cpx ZP0
+			bne cont_w
+			
+			ldx TEMPX
+			inx
+			cpx #04
+			bne each
+	out: 	rts
+
 }
 
 /*****************************************************************/
@@ -575,10 +655,91 @@ CONNECT_DEAD_ENDS: {
 }
 
 /*****************************************************************/
+
+MAKE_ROOMS:
+/** 
+	by default only four rooms are made
+	room definition:
+		x,y grid top left
+		sizex, sizey: width, height
+*/
+
+{
+	
+				ldx #0
+		each:	stx TEMPX
+				txa
+				asl
+				asl
+				tay					//datasize 4 from x to y
+									//top x
+				lda #0
+				sta ZP2
+				sta ZP4
+				lda room_def,y
+				sta ZP1				//x from
+				lda room_def+1,y
+				sta ZP3				//x to
+				sty TEMPY
+				jsr rnd_XY
+				lda WINT
+				ldy TEMPY
+				sta rooms,y			//top x random(from, to)
+									//top y
+				lda #0
+				sta ZP2
+				sta ZP4
+				lda room_def+2,y
+				sta ZP1				//y from
+				lda room_def+3,y
+				sta ZP3				//y to
+				sty TEMPY
+				jsr rnd_XY
+				lda WINT
+				ldy TEMPY
+				iny
+				sta rooms,y			//top y random(from, to)
+									//w
+				lda #0
+				sta ZP2
+				sta ZP4
+				lda #MIN_W
+				sta ZP1
+				lda #MAX_W
+				sta ZP3
+				sty TEMPY
+				jsr rnd_XY
+				lda WINT
+				ldy TEMPY
+				iny	
+				sta rooms,y			//w
+									//h
+				lda #0
+				sta ZP2
+				sta ZP4
+				lda #MIN_W
+				sta ZP1
+				lda #MAX_W
+				sta ZP3
+				sty TEMPY
+				jsr rnd_XY
+				lda WINT
+				ldy TEMPY
+				iny	
+				sta rooms,y			//h
+
+				ldx TEMPX
+				inx
+				cpx #04
+				bne each
+
+	out:		rts
+}
+/*****************************************************************/
 //--- MAIN -------------------------------------------------------
 MAZE:
 {
-				jsr MAZE_FILL
+				//jsr MAZE_FILL
 				//start grid might be DE!!
 				jsr STORE_DEAD_END
 outer:
@@ -695,4 +856,11 @@ bias_counter:				.byte 0
 bias_direction:				.word 0
 DE_counter:					.byte 0
 REM_DE_counter:				.byte 0
+rooms:
+.for(var i=0; i<4; i++)		.fill 4,0
+room_def:					
+							.byte 3, 14, 2, 6
+							.byte 23, 33, 2, 6
+							.byte 3, 14, 14, 17
+							.byte 23, 33, 14, 17
 //----------------------------------------------------------------	

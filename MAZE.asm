@@ -13,7 +13,7 @@ https://codebase64.org/doku.php?id=base:vicii_memory_organizing
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.07.02"
+.const VER	= "0.08.00"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -63,6 +63,8 @@ begin:
 init:
 		MAZE_BIAS(2)
 		INIT_MAZE(SCREEN)
+		jsr ROOMS
+
 		//when rooms, this should be changed
 		RandomNumber(1, 38)
 		MOV8(WINT,startX)
@@ -71,12 +73,12 @@ init:
 		//
 		
 		MOV16(startX, maze_start)
-		jsr MAZE
-		jsr CONNECT_DEAD_ENDS
+		//jsr MAZE
+		//jsr CONNECT_DEAD_ENDS
 		
 end:
 		WaitAnyKey()
-		jmp init
+		//jmp init
 		rts
 
 

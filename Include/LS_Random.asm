@@ -139,6 +139,7 @@ limits: 0 - 32767
 arguments: 
 	start -> ZP1, lower inclusive
 	end -> ZP3, upper inclusive
+	changes: x,y,a
 return: WINT: 16-bit int
 */
 		lda #<end	
@@ -152,6 +153,8 @@ return: WINT: 16-bit int
 		jsr rnd_XY
 }
 
+/*****************************************************************/
+
 .macro RandomX(X){
 /**
 limits: 0 - 255
@@ -159,6 +162,7 @@ from 0 (inclusive), to value in X (inclusive)
 arguments: 
 	start -> ZP1, lower inclusive -> 0
 	end -> ZP3, upper inclusive
+	changes: x,y,a
 return: WINT: 16-bit int
 */
 

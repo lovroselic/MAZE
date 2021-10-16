@@ -9,8 +9,8 @@
 080c: 00 00     - bend:   .byte $00, $00				//;end of basic program
 
 [Main]
-0810: 20 3a 09  - setup:  jsr COPY_CHAR_ROM_TO_RAM
-0813: 20 9b 0f  -         jsr set_bricks
+0810: 20 37 09  - setup:  jsr COPY_CHAR_ROM_TO_RAM
+0813: 20 8b 10  -         jsr set_bricks
 0816: a9 0f     -         lda	#color
 0818: a0 00     -         ldy #0
 081a: 99 00 d8  - fill:   sta COLOR_RAM,y
@@ -35,20 +35,20 @@
 084a: 8d 11 d0  -         sta CONTROL_REGISTER1
 084d: a9 32     -         lda #startRaster
 084f: 8d 12 d0  -         sta RASTER_COUNTER
-0852: a9 66     -         lda #<address
+0852: a9 56     -         lda #<address
 0854: 8d 14 03  -         sta IRQVEC
-0857: a9 0f     -         lda #>address
+0857: a9 10     -         lda #>address
 0859: 8d 15 03  -         sta	IRQVEC+1
 085c: 58        -         cli
 085d: d8        - begin:  cld
 085e: a9 02     - init:   lda #B
-0860: 8d 60 0f  -         sta bias
+0860: 8d 30 10  -         sta bias
 0863: a9 00     -         lda #00
-0865: 8d 61 0f  -         sta bias_counter
+0865: 8d 31 10  -         sta bias_counter
 0868: a9 00     -         lda #<addr
-086a: 8d 3d 0f  -         sta X
+086a: 8d 0d 10  -         sta X
 086d: a9 04     -         lda #>addr
-086f: 8d 3e 0f  -         sta X+1
+086f: 8d 0e 10  -         sta X+1
 0872: a9 00     -         lda #<addr
 0874: 85 71     -         sta X
 0876: a9 c0     -         lda #>addr
@@ -62,908 +62,1022 @@
 0886: a9 c5     -         lda #>addr
 0888: 85 5f     -         sta X+1
 088a: a9 00     -         lda #00
-088c: 8d 64 0f  -         sta DE_counter
-088f: 8d 65 0f  -         sta REM_DE_counter
-0892: a9 26     -         lda #<end	
-0894: 85 fd     -         sta ZP3
-0896: a9 00     -         lda #>end
-0898: 85 fe     -         sta ZP4
-089a: a9 01     -         lda #<start
-089c: 85 fb     -         sta ZP1
-089e: a9 00     -         lda #>start
-08a0: 85 fc     -         sta ZP2
-08a2: 20 6a 09  -         jsr rnd_XY
-08a5: a5 14     -         lda X
-08a7: 8d aa 0f  -         sta Y
-08aa: a9 17     -         lda #<end	
-08ac: 85 fd     -         sta ZP3
-08ae: a9 00     -         lda #>end
-08b0: 85 fe     -         sta ZP4
-08b2: a9 01     -         lda #<start
-08b4: 85 fb     -         sta ZP1
-08b6: a9 00     -         lda #>start
-08b8: 85 fc     -         sta ZP2
-08ba: 20 6a 09  -         jsr rnd_XY
-08bd: a5 14     -         lda X
-08bf: 8d ab 0f  -         sta Y
-08c2: ad aa 0f  -         lda X
-08c5: 8d 3f 0f  -         sta Y
-08c8: ad ab 0f  -         lda X + 1
-08cb: 8d 40 0f  -         sta Y + 1
-08ce: 20 7f 0e  -         jsr MAZE
-08d1: 20 7e 0e  -         jsr CONNECT_DEAD_ENDS
+088c: 8d 34 10  -         sta DE_counter
+088f: 8d 35 10  -         sta REM_DE_counter
+0892: 20 e8 09  -         jsr MAZE_FILL
+0895: 20 5f 0a  -         jsr ROOMS
+0898: a9 26     -         lda #<end	
+089a: 85 fd     -         sta ZP3
+089c: a9 00     -         lda #>end
+089e: 85 fe     -         sta ZP4
+08a0: a9 01     -         lda #<start
+08a2: 85 fb     -         sta ZP1
+08a4: a9 00     -         lda #>start
+08a6: 85 fc     -         sta ZP2
+08a8: 20 67 09  -         jsr rnd_XY
+08ab: a5 14     -         lda X
+08ad: 8d 9a 10  -         sta Y
+08b0: a9 17     -         lda #<end	
+08b2: 85 fd     -         sta ZP3
+08b4: a9 00     -         lda #>end
+08b6: 85 fe     -         sta ZP4
+08b8: a9 01     -         lda #<start
+08ba: 85 fb     -         sta ZP1
+08bc: a9 00     -         lda #>start
+08be: 85 fc     -         sta ZP2
+08c0: 20 67 09  -         jsr rnd_XY
+08c3: a5 14     -         lda X
+08c5: 8d 9b 10  -         sta Y
+08c8: ad 9a 10  -         lda X
+08cb: 8d 0f 10  -         sta Y
+08ce: ad 9b 10  -         lda X + 1
+08d1: 8d 10 10  -         sta Y + 1
 08d4: a5 c5     - end,key:lda LSTX		//get character in A
 08d6: c9 40     -         cmp #64			//no key
 08d8: f0 fa     -         beq key
-08da: 4c 5e 08  -         jmp init
-08dd: 60        -         rts
+08da: 60        -         rts
 
 [Imports]
-08de: c6 48     - imports,SPLICE:dec VAR_B								//array length - 1, last index
-08e0: a4 47     -         ldy VAR_A								//index
-08e2: c4 48     - loop:   cpy VAR_B								//stop if index
-08e4: 10 35     -         bpl out 								//equal or greater than last index
-08e6: a2 00     -         ldx #0									//number of properties (data_size), start from 0
-08e8: c8        - each:   iny		
-08e9: 84 40     -         sty TEMPY
-08eb: a5 49     -         lda	VAR_C 								//data size
-08ed: 20 1c 09  -         jsr MUL_Y_A
-08f0: 84 02     -         sty ZP0
-08f2: 8a        -         txa
-08f3: 18        -         clc
-08f4: 65 02     -         adc ZP0
-08f6: a8        -         tay
-08f7: b1 43     -         lda (BV1),y
-08f9: 85 41     -         sta TEMPA1
-08fb: a4 40     -         ldy TEMPY
-08fd: 88        -         dey
-08fe: 84 40     -         sty TEMPY
-0900: a5 49     -         lda	VAR_C 								//data size
-0902: 20 1c 09  -         jsr MUL_Y_A
-0905: 84 02     -         sty ZP0
-0907: 8a        -         txa
-0908: 18        -         clc
-0909: 65 02     -         adc ZP0
-090b: a8        -         tay
-090c: a5 41     -         lda TEMPA1
-090e: 91 43     -         sta (BV1),y
-0910: a4 40     -         ldy TEMPY
-0912: e8        -         inx
-0913: e4 49     -         cpx VAR_C								//all props? less than VAR_C ?
-0915: 90 d1     -         bcc each
-0917: c8        -         iny
-0918: 4c e2 08  -         jmp loop
-091b: 60        - out:    rts
-091c: c0 00     - MUL_Y_A,multiply:cpy #00
-091e: f0 18     -         beq end
-0920: 88        -         dey
-0921: 8c 2e 09  -         sty mod+1
-0924: 4a        -         lsr
-0925: 85 02     -         sta ZP0
-0927: a9 00     -         lda #00
-0929: a0 08     -         ldy #$08
-092b: 90 02     - loop:   bcc skip
-092d: 69 00     - mod:    adc #0
-092f: 6a        - skip:   ror
-0930: 66 02     -         ror ZP0
-0932: 88        -         dey
-0933: d0 f6     -         bne loop
-0935: a4 02     -         ldy ZP0
-0937: 60        -         rts
-0938: 98        - end:    tya
-0939: 60        -         rts
-093a: 78        - COPY_CHAR_ROM_TO_RAM:sei
-093b: a5 01     -         lda $01			//make ROM visible
-093d: 29 fb     -         and #$FB
-093f: 85 01     -         sta $01 
-0941: a9 00     -         lda #00
-0943: 85 5f     -         sta $5f			//block start
-0945: 85 5a     -         sta $5a			//block end
-0947: 85 58     -         sta $58			//destination end
-0949: a0 d0     -         ldy #$d0
-094b: 84 60     -         sty $60			//block start
-094d: a0 e0     -         ldy #$e0		
-094f: 84 5b     -         sty $5b			//block end
-0951: a0 40     - ram:    ldy #$40
-0953: 84 59     -         sty $59			//destination end
-0955: 20 bf a3  -         jsr MOVE_BYTES
-0958: a5 01     -         lda $01			//hide rom
-095a: 09 04     -         ora #$04
-095c: 85 01     -         sta $01
-095e: 58        -         cli
-095f: ad 18 d0  -         lda VMCSB
-0962: 29 f0     -         and #%11110000
-0964: 09 0c     -         ora #%00001100	//$3000
-0966: 8d 18 d0  -         sta VMCSB
-0969: 60        -         rts
+08db: c6 48     - imports,SPLICE:dec VAR_B								//array length - 1, last index
+08dd: a4 47     -         ldy VAR_A								//index
+08df: c4 48     - loop:   cpy VAR_B								//stop if index
+08e1: 10 35     -         bpl out 								//equal or greater than last index
+08e3: a2 00     -         ldx #0									//number of properties (data_size), start from 0
+08e5: c8        - each:   iny		
+08e6: 84 40     -         sty TEMPY
+08e8: a5 49     -         lda	VAR_C 								//data size
+08ea: 20 19 09  -         jsr MUL_Y_A
+08ed: 84 02     -         sty ZP0
+08ef: 8a        -         txa
+08f0: 18        -         clc
+08f1: 65 02     -         adc ZP0
+08f3: a8        -         tay
+08f4: b1 43     -         lda (BV1),y
+08f6: 85 41     -         sta TEMPA1
+08f8: a4 40     -         ldy TEMPY
+08fa: 88        -         dey
+08fb: 84 40     -         sty TEMPY
+08fd: a5 49     -         lda	VAR_C 								//data size
+08ff: 20 19 09  -         jsr MUL_Y_A
+0902: 84 02     -         sty ZP0
+0904: 8a        -         txa
+0905: 18        -         clc
+0906: 65 02     -         adc ZP0
+0908: a8        -         tay
+0909: a5 41     -         lda TEMPA1
+090b: 91 43     -         sta (BV1),y
+090d: a4 40     -         ldy TEMPY
+090f: e8        -         inx
+0910: e4 49     -         cpx VAR_C								//all props? less than VAR_C ?
+0912: 90 d1     -         bcc each
+0914: c8        -         iny
+0915: 4c df 08  -         jmp loop
+0918: 60        - out:    rts
+0919: c0 00     - MUL_Y_A,multiply:cpy #00
+091b: f0 18     -         beq end
+091d: 88        -         dey
+091e: 8c 2b 09  -         sty mod+1
+0921: 4a        -         lsr
+0922: 85 02     -         sta ZP0
+0924: a9 00     -         lda #00
+0926: a0 08     -         ldy #$08
+0928: 90 02     - loop:   bcc skip
+092a: 69 00     - mod:    adc #0
+092c: 6a        - skip:   ror
+092d: 66 02     -         ror ZP0
+092f: 88        -         dey
+0930: d0 f6     -         bne loop
+0932: a4 02     -         ldy ZP0
+0934: 60        -         rts
+0935: 98        - end:    tya
+0936: 60        -         rts
+0937: 78        - COPY_CHAR_ROM_TO_RAM:sei
+0938: a5 01     -         lda $01			//make ROM visible
+093a: 29 fb     -         and #$FB
+093c: 85 01     -         sta $01 
+093e: a9 00     -         lda #00
+0940: 85 5f     -         sta $5f			//block start
+0942: 85 5a     -         sta $5a			//block end
+0944: 85 58     -         sta $58			//destination end
+0946: a0 d0     -         ldy #$d0
+0948: 84 60     -         sty $60			//block start
+094a: a0 e0     -         ldy #$e0		
+094c: 84 5b     -         sty $5b			//block end
+094e: a0 40     - ram:    ldy #$40
+0950: 84 59     -         sty $59			//destination end
+0952: 20 bf a3  -         jsr MOVE_BYTES
+0955: a5 01     -         lda $01			//hide rom
+0957: 09 04     -         ora #$04
+0959: 85 01     -         sta $01
+095b: 58        -         cli
+095c: ad 18 d0  -         lda VMCSB
+095f: 29 f0     -         and #%11110000
+0961: 09 0c     -         ora #%00001100	//$3000
+0963: 8d 18 d0  -         sta VMCSB
+0966: 60        -         rts
 
 [SYSTEM_data]
-096a: e6 fd     - SYS_data,rnd_XY:inc ZP3
-096c: d0 02     -         bne skip1
-096e: e6 fe     -         inc ZP4
-0970: a5 fd     - skip1:  lda ZP3
-0972: 38        -         sec
-0973: e5 fb     -         sbc ZP1
-0975: 85 fd     -         sta ZP3
-0977: a5 fe     -         lda ZP4
-0979: e5 fc     -         sbc ZP2
-097b: 85 fe     -         sta ZP4			
-097d: a4 fd     - toFloat:ldy ZP3
-097f: a5 fe     -         lda ZP4
-0981: 20 91 b3  -         jsr GIVAYF 					//A(h),Y(L) - FAC
-0984: a2 d6     -         ldx #<flt
-0986: a0 09     -         ldy #>flt
-0988: 20 d4 bb  -         jsr MOVMF					//store FAC to flt		
-098b: a9 00     -         lda #$00					//RND(0)
-098d: 20 9a e0  -         jsr RND						//$E09A
-0990: a9 d6     -         lda #<flt
-0992: a0 09     -         ldy #>flt
-0994: 20 28 ba  -         jsr FMULT					//Multiplies a number from RAM (A,y) and FAC	
-0997: 20 cc bc  -         jsr FAINT					//to integer
-099a: 20 bf b1  -         jsr AYINT					//fac to signed int HI $64 LO $65
-099d: a5 65     -         lda $65						//FAC mantissa lo
-099f: 18        -         clc
-09a0: 65 fb     -         adc ZP1						//add number to start	
-09a2: 85 14     -         sta WINT
-09a4: a5 64     -         lda $64						//FAC mantissa hi
-09a6: 65 fc     -         adc ZP2
-09a8: 85 15     -         sta WINT+1
-09aa: 60        - over:   rts			
-09ab: e6 fd     - rnd_X:  inc ZP3
-09ad: d0 02     -         bne toFloat
-09af: e6 fe     -         inc ZP4	
-09b1: a4 fd     - toFloat:ldy ZP3
-09b3: a5 fe     -         lda ZP4
-09b5: 20 91 b3  -         jsr GIVAYF 					//A(h),Y(L) - FAC
-09b8: a2 d6     -         ldx #<flt
-09ba: a0 09     -         ldy #>flt
-09bc: 20 d4 bb  -         jsr MOVMF					//store FAC to flt		
-09bf: a9 00     -         lda #$00					//get actual RND(0)
-09c1: 20 9a e0  -         jsr RND						//$E09A
-09c4: a9 d6     -         lda #<flt
-09c6: a0 09     -         ldy #>flt
-09c8: 20 28 ba  -         jsr FMULT					//Multiplies a number from RAM (A,y) and FAC	
-09cb: 20 cc bc  -         jsr FAINT					//to integer
-09ce: 20 bf b1  -         jsr AYINT					//fac to signed int HI $64 LO $65
-09d1: a5 65     -         lda $65						//FAC mantissa lo
-09d3: 85 14     -         sta WINT					
-09d5: 60        -         rts			
+0967: e6 fd     - SYS_data,rnd_XY:inc ZP3
+0969: d0 02     -         bne skip1
+096b: e6 fe     -         inc ZP4
+096d: a5 fd     - skip1:  lda ZP3
+096f: 38        -         sec
+0970: e5 fb     -         sbc ZP1
+0972: 85 fd     -         sta ZP3
+0974: a5 fe     -         lda ZP4
+0976: e5 fc     -         sbc ZP2
+0978: 85 fe     -         sta ZP4			
+097a: a4 fd     - toFloat:ldy ZP3
+097c: a5 fe     -         lda ZP4
+097e: 20 91 b3  -         jsr GIVAYF 					//A(h),Y(L) - FAC
+0981: a2 d3     -         ldx #<flt
+0983: a0 09     -         ldy #>flt
+0985: 20 d4 bb  -         jsr MOVMF					//store FAC to flt		
+0988: a9 00     -         lda #$00					//RND(0)
+098a: 20 9a e0  -         jsr RND						//$E09A
+098d: a9 d3     -         lda #<flt
+098f: a0 09     -         ldy #>flt
+0991: 20 28 ba  -         jsr FMULT					//Multiplies a number from RAM (A,y) and FAC	
+0994: 20 cc bc  -         jsr FAINT					//to integer
+0997: 20 bf b1  -         jsr AYINT					//fac to signed int HI $64 LO $65
+099a: a5 65     -         lda $65						//FAC mantissa lo
+099c: 18        -         clc
+099d: 65 fb     -         adc ZP1						//add number to start	
+099f: 85 14     -         sta WINT
+09a1: a5 64     -         lda $64						//FAC mantissa hi
+09a3: 65 fc     -         adc ZP2
+09a5: 85 15     -         sta WINT+1
+09a7: 60        - over:   rts			
+09a8: e6 fd     - rnd_X:  inc ZP3
+09aa: d0 02     -         bne toFloat
+09ac: e6 fe     -         inc ZP4	
+09ae: a4 fd     - toFloat:ldy ZP3
+09b0: a5 fe     -         lda ZP4
+09b2: 20 91 b3  -         jsr GIVAYF 					//A(h),Y(L) - FAC
+09b5: a2 d3     -         ldx #<flt
+09b7: a0 09     -         ldy #>flt
+09b9: 20 d4 bb  -         jsr MOVMF					//store FAC to flt		
+09bc: a9 00     -         lda #$00					//get actual RND(0)
+09be: 20 9a e0  -         jsr RND						//$E09A
+09c1: a9 d3     -         lda #<flt
+09c3: a0 09     -         ldy #>flt
+09c5: 20 28 ba  -         jsr FMULT					//Multiplies a number from RAM (A,y) and FAC	
+09c8: 20 cc bc  -         jsr FAINT					//to integer
+09cb: 20 bf b1  -         jsr AYINT					//fac to signed int HI $64 LO $65
+09ce: a5 65     -         lda $65						//FAC mantissa lo
+09d0: 85 14     -         sta WINT					
+09d2: 60        -         rts			
 
 [Data RND]
-09d6: 00 00 00 00 00                                   - dataRND,flt:.byte 0,0,0,0,0
+09d3: 00 00 00 00 00                                   - dataRND,flt:.byte 0,0,0,0,0
 
 [Grid_Constants]
-09db: 00 ff     - Grid_Constants,BASIC_DIRS,UP:.byte 	0, -1
-09dd: 00 01     - DOWN:   .byte 	0, 1
-09df: ff 00     - LEFT:   .byte	-1, 0
-09e1: 01 00     - RIGHT:  .byte 	1,0
-09e3: ff ff     - PROX_TEMPLATE:.byte 	-1, -1
-09e5: 01 01     -         .byte 	1, 1
-09e7: ff ff     -         .byte 	-1, -1
-09e9: 01 01     -         .byte 	1, 1
-09eb: ad 3d 0f  - MAZE_FILL:lda X
-09ee: 85 fb     -         sta Y
-09f0: ad 3e 0f  -         lda X + 1
-09f3: 85 fc     -         sta Y + 1
-09f5: a9 00     -         lda	#WALL
-09f7: a2 04     -         ldx #4
-09f9: a0 00     - block:  ldy #0
-09fb: 91 fb     - fill:   sta (ZP1),y
-09fd: c8        -         iny
-09fe: d0 fb     -         bne fill
-0a00: e6 fc     -         inc ZP2
-0a02: ca        -         dex
-0a03: d0 f4     -         bne block
-0a05: 60        -         rts
-0a06: ad 3d 0f  - MAZE_DOT:lda X
-0a09: 85 fb     -         sta Y
-0a0b: ad 3e 0f  -         lda X + 1
-0a0e: 85 fc     -         sta Y + 1
-0a10: a9 00     -         lda #0
-0a12: 85 fe     -         sta ZP4				
-0a14: ad 40 0f  -         lda grid+1		
-0a17: 85 fd     -         sta ZP3
-0a19: a0 03     -         ldy #03
-0a1b: 06 fd     - mul8:   asl X
-0a1d: 26 fe     -         rol X+1	
-0a1f: 88        -         dey
-0a20: d0 f9     -         bne mul8
-0a22: 18        -         clc
-0a23: a5 fb     -         lda X
-0a25: 65 fd     -         adc Y
-0a27: 85 fb     -         sta X
-0a29: 90 02     -         bcc skip
-0a2b: e6 fc     -         inc X+1
-0a2d: 18        - skip:   clc
-0a2e: a5 fc     -         lda X+1
-0a30: 65 fe     -         adc Y+1
-0a32: 85 fc     -         sta X+1	
-0a34: a0 02     -         ldy #02	
-0a36: 06 fd     - mul32:  asl X
-0a38: 26 fe     -         rol X+1	
-0a3a: 88        -         dey
-0a3b: d0 f9     -         bne mul32
-0a3d: 18        -         clc
-0a3e: a5 fb     -         lda X
-0a40: 65 fd     -         adc Y
-0a42: 85 fb     -         sta X
-0a44: 90 02     -         bcc skip
-0a46: e6 fc     -         inc X+1
-0a48: 18        - skip:   clc
-0a49: a5 fc     -         lda X+1
-0a4b: 65 fe     -         adc Y+1
-0a4d: 85 fc     -         sta X+1	
-0a4f: 18        -         clc
-0a50: a5 fb     -         lda X
-0a52: 6d 3f 0f  -         adc y	
-0a55: 85 fb     -         sta X
-0a57: 90 02     -         bcc out+2
-0a59: e6 fc     - out:    inc X+1
-0a5b: a9 20     -         lda #DOT
-0a5d: a0 00     -         ldy #0
-0a5f: 91 fb     -         sta (ZP1),y
-0a61: 60        -         rts
-0a62: a2 03     - POINTERS_FROM_START:ldx #03
-0a64: 8a        - add:    txa
-0a65: 0a        -         asl
-0a66: a8        -         tay		
-0a67: 18        -         clc
-0a68: ad 3f 0f  -         lda maze_start
-0a6b: 79 db 09  -         adc BASIC_DIRS,y
-0a6e: 99 47 0f  -         sta candidates,y
-0a71: c8        -         iny
-0a72: 18        -         clc
-0a73: ad 40 0f  -         lda maze_start+1
-0a76: 79 db 09  -         adc BASIC_DIRS,y
-0a79: 99 47 0f  -         sta candidates,y
-0a7c: ca        -         dex
-0a7d: 10 e5     -         bpl add
-0a7f: a2 03     -         ldx #03
-0a81: 8a        - copy:   txa
-0a82: 0a        -         asl
-0a83: a8        -         tay	
-0a84: b9 db 09  -         lda BASIC_DIRS,y
-0a87: 99 4f 0f  -         sta candidates_vectors,y
-0a8a: c8        -         iny
-0a8b: b9 db 09  -         lda BASIC_DIRS,y
-0a8e: 99 4f 0f  -         sta candidates_vectors,y
-0a91: ca        -         dex
-0a92: 10 ed     -         bpl copy
-0a94: a9 04     -         lda #04
-0a96: 8d 57 0f  -         sta candidates_length
-0a99: 60        -         rts
-0a9a: ad 57 0f  - FILTER_IF_OUT:lda candidates_length
-0a9d: c9 01     -         cmp #1
-0a9f: b0 01     -         bcs start
-0aa1: 60        -         rts
-0aa2: ae 57 0f  - start:  ldx candidates_length				//number of grids yet to check
-0aa5: ca        -         dex
-0aa6: 8a        - each:   txa
-0aa7: 0a        -         asl
-0aa8: a8        -         tay
-0aa9: 18        -         clc
-0aaa: b9 47 0f  -         lda candidates,y
-0aad: c9 27     -         cmp #MAX_X+1
-0aaf: b0 18     -         bcs shift
-0ab1: c9 01     -         cmp #MIN_X
-0ab3: 90 14     -         bcc shift
-0ab5: c8        -         iny
-0ab6: 18        -         clc
-0ab7: b9 47 0f  -         lda candidates,y
-0aba: c9 18     -         cmp #MAX_Y+1
-0abc: b0 0b     -         bcs shift
-0abe: c9 01     -         cmp #MIN_Y
-0ac0: 90 07     -         bcc shift
-0ac2: ca        - cont:   dex
-0ac3: 30 03     -         bmi out
-0ac5: 4c a6 0a  -         jmp each
-0ac8: 60        - out:    rts
-0ac9: 86 3f     - shift:  stx TEMPX									//save x							
-0acb: 86 47     -         stx VAR_A									//set index to VAR_A
-0acd: ad 57 0f  -         lda X
-0ad0: 85 48     -         sta Y
-0ad2: a9 47     -         lda #<addr
-0ad4: 85 43     -         sta X
-0ad6: a9 0f     -         lda #>addr
-0ad8: 85 44     -         sta X+1
-0ada: a9 02     -         lda #data_size
-0adc: 85 49     -         sta VAR_C
-0ade: 20 de 08  -         jsr SPLICE
-0ae1: ad 57 0f  -         lda X
-0ae4: 85 48     -         sta Y
-0ae6: a9 4f     -         lda #<addr
-0ae8: 85 43     -         sta X
-0aea: a9 0f     -         lda #>addr
-0aec: 85 44     -         sta X+1
-0aee: a9 02     -         lda #data_size
-0af0: 85 49     -         sta VAR_C
-0af2: 20 de 08  -         jsr SPLICE
-0af5: ce 57 0f  -         dec candidates_length						//dec array length
-0af8: a6 3f     -         ldx TEMPX									//restore x
-0afa: 4c c2 0a  -         jmp cont									//return to loop
-0afd: ad 57 0f  - FILTER_IF_DOT:lda candidates_length
-0b00: c9 01     -         cmp #1
-0b02: b0 01     -         bcs start
-0b04: 60        -         rts
-0b05: ae 57 0f  - start:  ldx candidates_length						//number of grids yet to check
-0b08: ca        -         dex
-0b09: 8a        - each:   txa
-0b0a: 0a        -         asl
-0b0b: a8        -         tay
-0b0c: b9 47 0f  -         lda candidates,y
-0b0f: 8d 41 0f  -         sta grid_pointer
-0b12: c8        -         iny
-0b13: b9 47 0f  -         lda candidates,y
-0b16: 8d 42 0f  -         sta grid_pointer+1
-0b19: ad 3d 0f  -         lda X
-0b1c: 85 fb     -         sta Y
-0b1e: ad 3e 0f  -         lda X + 1
-0b21: 85 fc     -         sta Y + 1
-0b23: a9 00     -         lda #0
-0b25: 85 fe     -         sta ZP4				
-0b27: ad 42 0f  -         lda grid+1		
-0b2a: 85 fd     -         sta ZP3
-0b2c: a0 03     -         ldy #03
-0b2e: 06 fd     - mul8:   asl X
-0b30: 26 fe     -         rol X+1	
-0b32: 88        -         dey
-0b33: d0 f9     -         bne mul8
-0b35: 18        -         clc
-0b36: a5 fb     -         lda X
-0b38: 65 fd     -         adc Y
-0b3a: 85 fb     -         sta X
-0b3c: 90 02     -         bcc skip
-0b3e: e6 fc     -         inc X+1
-0b40: 18        - skip:   clc
-0b41: a5 fc     -         lda X+1
-0b43: 65 fe     -         adc Y+1
-0b45: 85 fc     -         sta X+1	
-0b47: a0 02     -         ldy #02	
-0b49: 06 fd     - mul32:  asl X
-0b4b: 26 fe     -         rol X+1	
-0b4d: 88        -         dey
-0b4e: d0 f9     -         bne mul32
-0b50: 18        -         clc
-0b51: a5 fb     -         lda X
-0b53: 65 fd     -         adc Y
-0b55: 85 fb     -         sta X
-0b57: 90 02     -         bcc skip
-0b59: e6 fc     -         inc X+1
-0b5b: 18        - skip:   clc
-0b5c: a5 fc     -         lda X+1
-0b5e: 65 fe     -         adc Y+1
-0b60: 85 fc     -         sta X+1	
-0b62: 18        -         clc
-0b63: a5 fb     -         lda X
-0b65: 6d 41 0f  -         adc y	
-0b68: 85 fb     -         sta X
-0b6a: 90 02     -         bcc out+2
-0b6c: e6 fc     - out:    inc X+1
-0b6e: a0 00     -         ldy #0
-0b70: b1 fb     -         lda (ZP1),y
-0b72: c9 20     -         cmp #DOT
-0b74: f0 04     -         beq shift
-0b76: ca        - cont:   dex
-0b77: 10 90     -         bpl each
-0b79: 60        - out:    rts
-0b7a: 86 3f     - shift:  stx TEMPX									//save x
-0b7c: 86 47     -         stx VAR_A									//set index to VAR_A
-0b7e: ad 57 0f  -         lda X
-0b81: 85 48     -         sta Y
-0b83: a9 47     -         lda #<addr
-0b85: 85 43     -         sta X
-0b87: a9 0f     -         lda #>addr
-0b89: 85 44     -         sta X+1
-0b8b: a9 02     -         lda #data_size
-0b8d: 85 49     -         sta VAR_C
-0b8f: 20 de 08  -         jsr SPLICE
-0b92: ad 57 0f  -         lda X
-0b95: 85 48     -         sta Y
-0b97: a9 4f     -         lda #<addr
-0b99: 85 43     -         sta X
-0b9b: a9 0f     -         lda #>addr
-0b9d: 85 44     -         sta X+1
-0b9f: a9 02     -         lda #data_size
-0ba1: 85 49     -         sta VAR_C
-0ba3: 20 de 08  -         jsr SPLICE
-0ba6: ce 57 0f  -         dec candidates_length						//dec array length
-0ba9: a6 3f     -         ldx TEMPX									//restore x
-0bab: 4c 76 0b  -         jmp cont									//return to loop
-0bae: a5 02     - PUSH_REST_ON_STACK:lda ZP0										//index was stored in ZP0
-0bb0: 85 47     -         sta VAR_A									//set index to VAR_A
-0bb2: ad 57 0f  -         lda X
-0bb5: 85 48     -         sta Y
-0bb7: a9 47     -         lda #<addr
-0bb9: 85 43     -         sta X
-0bbb: a9 0f     -         lda #>addr
-0bbd: 85 44     -         sta X+1
-0bbf: a9 02     -         lda #data_size
-0bc1: 85 49     -         sta VAR_C
-0bc3: 20 de 08  -         jsr SPLICE
-0bc6: ad 57 0f  -         lda X
-0bc9: 85 48     -         sta Y
-0bcb: a9 4f     -         lda #<addr
-0bcd: 85 43     -         sta X
-0bcf: a9 0f     -         lda #>addr
-0bd1: 85 44     -         sta X+1
-0bd3: a9 02     -         lda #data_size
-0bd5: 85 49     -         sta VAR_C
-0bd7: 20 de 08  -         jsr SPLICE
-0bda: ce 57 0f  -         dec candidates_length						//dec array length
-0bdd: a2 00     -         ldx #0
-0bdf: a0 00     - each:   ldy #0
-0be1: 86 3f     -         stx TEMPX									//save x
-0be3: 8a        -         txa											//x = x *2	
-0be4: 0a        -         asl 
-0be5: aa        -         tax									
-0be6: bd 47 0f  -         lda candidates,x							//x
-0be9: 91 71     -         sta (STKPTR1),y
-0beb: c8        -         iny
-0bec: e8        -         inx
-0bed: bd 47 0f  -         lda candidates,x							//y
-0bf0: 91 71     -         sta (STKPTR1),y
-0bf2: 18        -         clc
-0bf3: a5 71     -         lda X
-0bf5: 69 02     -         adc #C
-0bf7: 85 71     -         sta X
-0bf9: 90 02     -         bcc out+2
-0bfb: e6 72     - out:    inc X+1
-0bfd: 88        -         dey
-0bfe: ca        -         dex
-0bff: bd 4f 0f  -         lda candidates_vectors,x					//x
-0c02: 91 71     -         sta (STKPTR1),y
-0c04: c8        -         iny
-0c05: e8        -         inx
-0c06: bd 4f 0f  -         lda candidates_vectors,x					//y
-0c09: 91 71     -         sta (STKPTR1),y
-0c0b: 18        -         clc
-0c0c: a5 71     -         lda X
-0c0e: 69 02     -         adc #C
-0c10: 85 71     -         sta X
-0c12: 90 02     -         bcc out+2
-0c14: e6 72     - out:    inc X+1
-0c16: a6 3f     -         ldx TEMPX									//restore x
-0c18: e8        -         inx
-0c19: ec 57 0f  -         cpx candidates_length
-0c1c: d0 c1     -         bne each
-0c1e: 60        - out:    rts		
-0c1f: ad 57 0f  - FILTER_IF_CLOSE_PRIMARY:lda candidates_length
-0c22: c9 01     -         cmp #1
-0c24: b0 01     -         bcs start										//cont if 1 or more
-0c26: 60        -         rts												//else exit, if no candidates
-0c27: ae 57 0f  - start:  ldx candidates_length							//number of grids yet to check
-0c2a: ca        -         dex												//to zero offset
-0c2b: 8a        - each:   txa
-0c2c: 0a        -         asl												//double, because datasize is 2
-0c2d: a8        -         tay												//offset in y (zero based x * datasize)
-0c2e: b9 47 0f  -         lda candidates,y
-0c31: 8d 41 0f  -         sta grid_pointer
-0c34: b9 4f 0f  -         lda candidates_vectors,y
-0c37: 8d 43 0f  -         sta direction_pointer
-0c3a: c8        -         iny
-0c3b: b9 47 0f  -         lda candidates,y
-0c3e: 8d 42 0f  -         sta grid_pointer+1
-0c41: b9 4f 0f  -         lda candidates_vectors,y
-0c44: 8d 44 0f  -         sta direction_pointer+1
-0c47: 18        -         clc
-0c48: ad 41 0f  -         lda grid_pointer
-0c4b: 6d 43 0f  -         adc direction_pointer
-0c4e: 8d 45 0f  -         sta test_pointer
-0c51: 18        -         clc
-0c52: ad 42 0f  -         lda grid_pointer+1
-0c55: 6d 44 0f  -         adc direction_pointer+1
-0c58: 8d 46 0f  -         sta test_pointer+1
-0c5b: ad 3d 0f  -         lda X
-0c5e: 85 fb     -         sta Y
-0c60: ad 3e 0f  -         lda X + 1
-0c63: 85 fc     -         sta Y + 1
-0c65: a9 00     -         lda #0
-0c67: 85 fe     -         sta ZP4				
-0c69: ad 46 0f  -         lda grid+1		
-0c6c: 85 fd     -         sta ZP3
-0c6e: a0 03     -         ldy #03
-0c70: 06 fd     - mul8:   asl X
-0c72: 26 fe     -         rol X+1	
-0c74: 88        -         dey
-0c75: d0 f9     -         bne mul8
-0c77: 18        -         clc
-0c78: a5 fb     -         lda X
-0c7a: 65 fd     -         adc Y
-0c7c: 85 fb     -         sta X
-0c7e: 90 02     -         bcc skip
-0c80: e6 fc     -         inc X+1
-0c82: 18        - skip:   clc
-0c83: a5 fc     -         lda X+1
-0c85: 65 fe     -         adc Y+1
-0c87: 85 fc     -         sta X+1	
-0c89: a0 02     -         ldy #02	
-0c8b: 06 fd     - mul32:  asl X
-0c8d: 26 fe     -         rol X+1	
-0c8f: 88        -         dey
-0c90: d0 f9     -         bne mul32
-0c92: 18        -         clc
-0c93: a5 fb     -         lda X
-0c95: 65 fd     -         adc Y
-0c97: 85 fb     -         sta X
-0c99: 90 02     -         bcc skip
-0c9b: e6 fc     -         inc X+1
-0c9d: 18        - skip:   clc
-0c9e: a5 fc     -         lda X+1
-0ca0: 65 fe     -         adc Y+1
-0ca2: 85 fc     -         sta X+1	
-0ca4: 18        -         clc
-0ca5: a5 fb     -         lda X
-0ca7: 6d 45 0f  -         adc y	
-0caa: 85 fb     -         sta X
-0cac: 90 02     -         bcc out+2
-0cae: e6 fc     - out:    inc X+1
-0cb0: a0 00     -         ldy #0
-0cb2: b1 fb     -         lda (ZP1),y
-0cb4: c9 20     -         cmp #DOT									//is dot? (empty)
-0cb6: f0 07     -         beq shift									//yes
-0cb8: ca        - cont:   dex
-0cb9: 30 03     -         bmi out										//less than zero, stop
-0cbb: 4c 2b 0c  -         jmp each									//loop back, branch too far
-0cbe: 60        - out:    rts
-0cbf: 86 3f     - shift:  stx TEMPX									//save x
-0cc1: 86 47     -         stx VAR_A									//set index to VAR_A
-0cc3: ad 57 0f  -         lda X
-0cc6: 85 48     -         sta Y
-0cc8: a9 47     -         lda #<addr
-0cca: 85 43     -         sta X
-0ccc: a9 0f     -         lda #>addr
-0cce: 85 44     -         sta X+1
-0cd0: a9 02     -         lda #data_size
-0cd2: 85 49     -         sta VAR_C
-0cd4: 20 de 08  -         jsr SPLICE
-0cd7: ad 57 0f  -         lda X
-0cda: 85 48     -         sta Y
-0cdc: a9 4f     -         lda #<addr
-0cde: 85 43     -         sta X
-0ce0: a9 0f     -         lda #>addr
-0ce2: 85 44     -         sta X+1
-0ce4: a9 02     -         lda #data_size
-0ce6: 85 49     -         sta VAR_C
-0ce8: 20 de 08  -         jsr SPLICE
-0ceb: ce 57 0f  -         dec candidates_length						//dec array length
-0cee: a6 3f     -         ldx TEMPX									//restore x
-0cf0: 4c b8 0c  -         jmp cont									//return to loop
-0cf3: ad 57 0f  - FILTER_SIDE_PROXIMIY:lda candidates_length
-0cf6: c9 01     -         cmp #1
-0cf8: b0 01     -         bcs start										//cont if 1 or more
-0cfa: 60        -         rts												//else exit, if no candidates
-0cfb: ae 57 0f  - start:  ldx candidates_length							//number of grids yet to check
-0cfe: ca        -         dex												//to zero offset
-0cff: 8a        - each:   txa
-0d00: 0a        -         asl												//double, because datasize is 2
-0d01: a8        -         tay												//offset in y (zero based x * datasize)
-0d02: b9 47 0f  -         lda candidates, y
-0d05: 8d 41 0f  -         sta grid_pointer
-0d08: b9 4f 0f  -         lda candidates_vectors,y
-0d0b: 8d 43 0f  -         sta direction_pointer
-0d0e: c8        -         iny
-0d0f: b9 47 0f  -         lda candidates, y
-0d12: 8d 42 0f  -         sta grid_pointer+1
-0d15: b9 4f 0f  -         lda candidates_vectors,y
-0d18: 8d 44 0f  -         sta direction_pointer+1
-0d1b: a9 e3     -         lda #<addr
-0d1d: 85 50     -         sta X
-0d1f: a9 09     -         lda #>addr
-0d21: 85 51     -         sta X+1
-0d23: a9 58     -         lda #<addr
-0d25: 85 4e     -         sta X
-0d27: a9 0f     -         lda #>addr
-0d29: 85 4f     -         sta X+1
-0d2b: a0 08     -         ldy #length											
-0d2d: 88        -         dey
-0d2e: b1 50     - copy:   lda (BV7),y
-0d30: 91 4e     -         sta (BV9),y
-0d32: 88        -         dey
-0d33: 10 f9     -         bpl copy
-0d35: a0 01     -         ldy #01											//y?
-0d37: b9 43 0f  -         lda direction_pointer,y
-0d3a: d0 01     -         bne ok											//if not zero, than this is right dimension
-0d3c: 88        -         dey												//not y, but x
-0d3d: b9 43 0f  - ok:     lda direction_pointer,y							//index of dimension now in y register
-0d40: 99 58 0f  -         sta proximity_vectors,y							//set sequence 1,1,0,0 on the right dimension, datasize=2
-0d43: c8        -         iny
-0d44: c8        -         iny
-0d45: 99 58 0f  -         sta proximity_vectors,y	
-0d48: c8        -         iny
-0d49: c8        -         iny
-0d4a: a9 00     -         lda #0
-0d4c: 99 58 0f  -         sta proximity_vectors,y	
-0d4f: c8        -         iny
-0d50: c8        -         iny
-0d51: 99 58 0f  -         sta proximity_vectors,y							//proximity vectors ready
-0d54: a0 00     -         ldy #00
-0d56: ad 41 0f  - repeat: lda grid_pointer
-0d59: 18        -         clc
-0d5a: 79 58 0f  -         adc proximity_vectors,y
-0d5d: 8d 45 0f  -         sta test_pointer
-0d60: c8        -         iny
-0d61: ad 42 0f  -         lda grid_pointer+1
-0d64: 18        -         clc
-0d65: 79 58 0f  -         adc proximity_vectors,y
-0d68: 8d 46 0f  -         sta test_pointer+1								//next grid now in test_pointer
-0d6b: 84 40     -         sty TEMPY										//save y
-0d6d: ad 3d 0f  -         lda X
-0d70: 85 fb     -         sta Y
-0d72: ad 3e 0f  -         lda X + 1
-0d75: 85 fc     -         sta Y + 1
-0d77: a9 00     -         lda #0
-0d79: 85 fe     -         sta ZP4				
-0d7b: ad 46 0f  -         lda grid+1		
-0d7e: 85 fd     -         sta ZP3
-0d80: a0 03     -         ldy #03
-0d82: 06 fd     - mul8:   asl X
-0d84: 26 fe     -         rol X+1	
+09d8: 00 ff     - Grid_Constants,BASIC_DIRS,UP:.byte 	0, -1
+09da: 00 01     - DOWN:   .byte 	0, 1
+09dc: ff 00     - LEFT:   .byte	-1, 0
+09de: 01 00     - RIGHT:  .byte 	1,0
+09e0: ff ff     - PROX_TEMPLATE:.byte 	-1, -1
+09e2: 01 01     -         .byte 	1, 1
+09e4: ff ff     -         .byte 	-1, -1
+09e6: 01 01     -         .byte 	1, 1
+09e8: ad 0d 10  - MAZE_FILL:lda X
+09eb: 85 fb     -         sta Y
+09ed: ad 0e 10  -         lda X + 1
+09f0: 85 fc     -         sta Y + 1
+09f2: a9 00     -         lda	#WALL
+09f4: a2 04     -         ldx #4
+09f6: a0 00     - block:  ldy #0
+09f8: 91 fb     - fill:   sta (ZP1),y
+09fa: c8        -         iny
+09fb: d0 fb     -         bne fill
+09fd: e6 fc     -         inc ZP2
+09ff: ca        -         dex
+0a00: d0 f4     -         bne block
+0a02: 60        -         rts
+0a03: ad 0d 10  - MAZE_DOT:lda X
+0a06: 85 fb     -         sta Y
+0a08: ad 0e 10  -         lda X + 1
+0a0b: 85 fc     -         sta Y + 1
+0a0d: a9 00     -         lda #0
+0a0f: 85 fe     -         sta ZP4				
+0a11: ad 10 10  -         lda grid+1		
+0a14: 85 fd     -         sta ZP3
+0a16: a0 03     -         ldy #03
+0a18: 06 fd     - mul8:   asl X
+0a1a: 26 fe     -         rol X+1	
+0a1c: 88        -         dey
+0a1d: d0 f9     -         bne mul8
+0a1f: 18        -         clc
+0a20: a5 fb     -         lda X
+0a22: 65 fd     -         adc Y
+0a24: 85 fb     -         sta X
+0a26: 90 02     -         bcc skip
+0a28: e6 fc     -         inc X+1
+0a2a: 18        - skip:   clc
+0a2b: a5 fc     -         lda X+1
+0a2d: 65 fe     -         adc Y+1
+0a2f: 85 fc     -         sta X+1	
+0a31: a0 02     -         ldy #02	
+0a33: 06 fd     - mul32:  asl X
+0a35: 26 fe     -         rol X+1	
+0a37: 88        -         dey
+0a38: d0 f9     -         bne mul32
+0a3a: 18        -         clc
+0a3b: a5 fb     -         lda X
+0a3d: 65 fd     -         adc Y
+0a3f: 85 fb     -         sta X
+0a41: 90 02     -         bcc skip
+0a43: e6 fc     -         inc X+1
+0a45: 18        - skip:   clc
+0a46: a5 fc     -         lda X+1
+0a48: 65 fe     -         adc Y+1
+0a4a: 85 fc     -         sta X+1	
+0a4c: 18        -         clc
+0a4d: a5 fb     -         lda X
+0a4f: 6d 0f 10  -         adc y	
+0a52: 85 fb     -         sta X
+0a54: 90 02     -         bcc out+2
+0a56: e6 fc     - out:    inc X+1
+0a58: a9 20     -         lda #DOT
+0a5a: a0 00     -         ldy #0
+0a5c: 91 fb     -         sta (ZP1),y
+0a5e: 60        -         rts
+0a5f: 20 d3 0e  - ROOMS:  jsr MAKE_ROOMS
+0a62: 20 66 0a  -         jsr PAINT_ROOMS
+0a65: 60        -         rts
+0a66: a2 00     - PAINT_ROOMS:ldx #00
+0a68: 86 3f     - each:   stx TEMPX				//each room
+0a6a: 8a        -         txa
+0a6b: 0a        -         asl
+0a6c: 0a        -         asl
+0a6d: a8        -         tay
+0a6e: b9 36 10  -         lda rooms,y				//get top left x of room
+0a71: 85 4e     -         sta BV9
+0a73: c8        -         iny
+0a74: b9 36 10  -         lda rooms,y				//get top left y of room
+0a77: 85 4f     -         sta BV10
+0a79: c8        -         iny
+0a7a: b9 36 10  -         lda rooms,y 			//w
+0a7d: 85 02     -         sta ZP0
+0a7f: c8        -         iny
+0a80: b9 36 10  -         lda rooms,y 			//h
+0a83: 85 52     -         sta BV0
+0a85: a2 00     -         ldx #0
+0a87: a0 00     - cont_w: ldy #0
+0a89: 86 41     - cont_h: stx TEMPA1
+0a8b: a5 4e     -         lda BV9
+0a8d: 18        -         clc
+0a8e: 65 41     -         adc TEMPA1
+0a90: 8d 0f 10  -         sta maze_start
+0a93: 84 41     -         sty TEMPA1
+0a95: a5 4f     -         lda BV10
+0a97: 18        -         clc
+0a98: 65 41     -         adc TEMPA1
+0a9a: 8d 10 10  -         sta maze_start+1
+0a9d: 84 40     -         sty TEMPY
+0a9f: 20 03 0a  -         jsr MAZE_DOT
+0aa2: a4 40     -         ldy TEMPY
+0aa4: c8        -         iny
+0aa5: c4 52     -         cpy BV0
+0aa7: d0 e0     -         bne cont_h
+0aa9: e8        -         inx
+0aaa: e4 02     -         cpx ZP0
+0aac: d0 d9     -         bne cont_w
+0aae: a6 3f     -         ldx TEMPX
+0ab0: e8        -         inx
+0ab1: e0 04     -         cpx #04
+0ab3: d0 b3     -         bne each
+0ab5: 60        - out:    rts
+0ab6: a2 03     - POINTERS_FROM_START:ldx #03
+0ab8: 8a        - add:    txa
+0ab9: 0a        -         asl
+0aba: a8        -         tay		
+0abb: 18        -         clc
+0abc: ad 0f 10  -         lda maze_start
+0abf: 79 d8 09  -         adc BASIC_DIRS,y
+0ac2: 99 17 10  -         sta candidates,y
+0ac5: c8        -         iny
+0ac6: 18        -         clc
+0ac7: ad 10 10  -         lda maze_start+1
+0aca: 79 d8 09  -         adc BASIC_DIRS,y
+0acd: 99 17 10  -         sta candidates,y
+0ad0: ca        -         dex
+0ad1: 10 e5     -         bpl add
+0ad3: a2 03     -         ldx #03
+0ad5: 8a        - copy:   txa
+0ad6: 0a        -         asl
+0ad7: a8        -         tay	
+0ad8: b9 d8 09  -         lda BASIC_DIRS,y
+0adb: 99 1f 10  -         sta candidates_vectors,y
+0ade: c8        -         iny
+0adf: b9 d8 09  -         lda BASIC_DIRS,y
+0ae2: 99 1f 10  -         sta candidates_vectors,y
+0ae5: ca        -         dex
+0ae6: 10 ed     -         bpl copy
+0ae8: a9 04     -         lda #04
+0aea: 8d 27 10  -         sta candidates_length
+0aed: 60        -         rts
+0aee: ad 27 10  - FILTER_IF_OUT:lda candidates_length
+0af1: c9 01     -         cmp #1
+0af3: b0 01     -         bcs start
+0af5: 60        -         rts
+0af6: ae 27 10  - start:  ldx candidates_length				//number of grids yet to check
+0af9: ca        -         dex
+0afa: 8a        - each:   txa
+0afb: 0a        -         asl
+0afc: a8        -         tay
+0afd: 18        -         clc
+0afe: b9 17 10  -         lda candidates,y
+0b01: c9 27     -         cmp #MAX_X+1
+0b03: b0 18     -         bcs shift
+0b05: c9 01     -         cmp #MIN_X
+0b07: 90 14     -         bcc shift
+0b09: c8        -         iny
+0b0a: 18        -         clc
+0b0b: b9 17 10  -         lda candidates,y
+0b0e: c9 18     -         cmp #MAX_Y+1
+0b10: b0 0b     -         bcs shift
+0b12: c9 01     -         cmp #MIN_Y
+0b14: 90 07     -         bcc shift
+0b16: ca        - cont:   dex
+0b17: 30 03     -         bmi out
+0b19: 4c fa 0a  -         jmp each
+0b1c: 60        - out:    rts
+0b1d: 86 3f     - shift:  stx TEMPX									//save x							
+0b1f: 86 47     -         stx VAR_A									//set index to VAR_A
+0b21: ad 27 10  -         lda X
+0b24: 85 48     -         sta Y
+0b26: a9 17     -         lda #<addr
+0b28: 85 43     -         sta X
+0b2a: a9 10     -         lda #>addr
+0b2c: 85 44     -         sta X+1
+0b2e: a9 02     -         lda #data_size
+0b30: 85 49     -         sta VAR_C
+0b32: 20 db 08  -         jsr SPLICE
+0b35: ad 27 10  -         lda X
+0b38: 85 48     -         sta Y
+0b3a: a9 1f     -         lda #<addr
+0b3c: 85 43     -         sta X
+0b3e: a9 10     -         lda #>addr
+0b40: 85 44     -         sta X+1
+0b42: a9 02     -         lda #data_size
+0b44: 85 49     -         sta VAR_C
+0b46: 20 db 08  -         jsr SPLICE
+0b49: ce 27 10  -         dec candidates_length						//dec array length
+0b4c: a6 3f     -         ldx TEMPX									//restore x
+0b4e: 4c 16 0b  -         jmp cont									//return to loop
+0b51: ad 27 10  - FILTER_IF_DOT:lda candidates_length
+0b54: c9 01     -         cmp #1
+0b56: b0 01     -         bcs start
+0b58: 60        -         rts
+0b59: ae 27 10  - start:  ldx candidates_length						//number of grids yet to check
+0b5c: ca        -         dex
+0b5d: 8a        - each:   txa
+0b5e: 0a        -         asl
+0b5f: a8        -         tay
+0b60: b9 17 10  -         lda candidates,y
+0b63: 8d 11 10  -         sta grid_pointer
+0b66: c8        -         iny
+0b67: b9 17 10  -         lda candidates,y
+0b6a: 8d 12 10  -         sta grid_pointer+1
+0b6d: ad 0d 10  -         lda X
+0b70: 85 fb     -         sta Y
+0b72: ad 0e 10  -         lda X + 1
+0b75: 85 fc     -         sta Y + 1
+0b77: a9 00     -         lda #0
+0b79: 85 fe     -         sta ZP4				
+0b7b: ad 12 10  -         lda grid+1		
+0b7e: 85 fd     -         sta ZP3
+0b80: a0 03     -         ldy #03
+0b82: 06 fd     - mul8:   asl X
+0b84: 26 fe     -         rol X+1	
+0b86: 88        -         dey
+0b87: d0 f9     -         bne mul8
+0b89: 18        -         clc
+0b8a: a5 fb     -         lda X
+0b8c: 65 fd     -         adc Y
+0b8e: 85 fb     -         sta X
+0b90: 90 02     -         bcc skip
+0b92: e6 fc     -         inc X+1
+0b94: 18        - skip:   clc
+0b95: a5 fc     -         lda X+1
+0b97: 65 fe     -         adc Y+1
+0b99: 85 fc     -         sta X+1	
+0b9b: a0 02     -         ldy #02	
+0b9d: 06 fd     - mul32:  asl X
+0b9f: 26 fe     -         rol X+1	
+0ba1: 88        -         dey
+0ba2: d0 f9     -         bne mul32
+0ba4: 18        -         clc
+0ba5: a5 fb     -         lda X
+0ba7: 65 fd     -         adc Y
+0ba9: 85 fb     -         sta X
+0bab: 90 02     -         bcc skip
+0bad: e6 fc     -         inc X+1
+0baf: 18        - skip:   clc
+0bb0: a5 fc     -         lda X+1
+0bb2: 65 fe     -         adc Y+1
+0bb4: 85 fc     -         sta X+1	
+0bb6: 18        -         clc
+0bb7: a5 fb     -         lda X
+0bb9: 6d 11 10  -         adc y	
+0bbc: 85 fb     -         sta X
+0bbe: 90 02     -         bcc out+2
+0bc0: e6 fc     - out:    inc X+1
+0bc2: a0 00     -         ldy #0
+0bc4: b1 fb     -         lda (ZP1),y
+0bc6: c9 20     -         cmp #DOT
+0bc8: f0 04     -         beq shift
+0bca: ca        - cont:   dex
+0bcb: 10 90     -         bpl each
+0bcd: 60        - out:    rts
+0bce: 86 3f     - shift:  stx TEMPX									//save x
+0bd0: 86 47     -         stx VAR_A									//set index to VAR_A
+0bd2: ad 27 10  -         lda X
+0bd5: 85 48     -         sta Y
+0bd7: a9 17     -         lda #<addr
+0bd9: 85 43     -         sta X
+0bdb: a9 10     -         lda #>addr
+0bdd: 85 44     -         sta X+1
+0bdf: a9 02     -         lda #data_size
+0be1: 85 49     -         sta VAR_C
+0be3: 20 db 08  -         jsr SPLICE
+0be6: ad 27 10  -         lda X
+0be9: 85 48     -         sta Y
+0beb: a9 1f     -         lda #<addr
+0bed: 85 43     -         sta X
+0bef: a9 10     -         lda #>addr
+0bf1: 85 44     -         sta X+1
+0bf3: a9 02     -         lda #data_size
+0bf5: 85 49     -         sta VAR_C
+0bf7: 20 db 08  -         jsr SPLICE
+0bfa: ce 27 10  -         dec candidates_length						//dec array length
+0bfd: a6 3f     -         ldx TEMPX									//restore x
+0bff: 4c ca 0b  -         jmp cont									//return to loop
+0c02: a5 02     - PUSH_REST_ON_STACK:lda ZP0										//index was stored in ZP0
+0c04: 85 47     -         sta VAR_A									//set index to VAR_A
+0c06: ad 27 10  -         lda X
+0c09: 85 48     -         sta Y
+0c0b: a9 17     -         lda #<addr
+0c0d: 85 43     -         sta X
+0c0f: a9 10     -         lda #>addr
+0c11: 85 44     -         sta X+1
+0c13: a9 02     -         lda #data_size
+0c15: 85 49     -         sta VAR_C
+0c17: 20 db 08  -         jsr SPLICE
+0c1a: ad 27 10  -         lda X
+0c1d: 85 48     -         sta Y
+0c1f: a9 1f     -         lda #<addr
+0c21: 85 43     -         sta X
+0c23: a9 10     -         lda #>addr
+0c25: 85 44     -         sta X+1
+0c27: a9 02     -         lda #data_size
+0c29: 85 49     -         sta VAR_C
+0c2b: 20 db 08  -         jsr SPLICE
+0c2e: ce 27 10  -         dec candidates_length						//dec array length
+0c31: a2 00     -         ldx #0
+0c33: a0 00     - each:   ldy #0
+0c35: 86 3f     -         stx TEMPX									//save x
+0c37: 8a        -         txa											//x = x *2	
+0c38: 0a        -         asl 
+0c39: aa        -         tax									
+0c3a: bd 17 10  -         lda candidates,x							//x
+0c3d: 91 71     -         sta (STKPTR1),y
+0c3f: c8        -         iny
+0c40: e8        -         inx
+0c41: bd 17 10  -         lda candidates,x							//y
+0c44: 91 71     -         sta (STKPTR1),y
+0c46: 18        -         clc
+0c47: a5 71     -         lda X
+0c49: 69 02     -         adc #C
+0c4b: 85 71     -         sta X
+0c4d: 90 02     -         bcc out+2
+0c4f: e6 72     - out:    inc X+1
+0c51: 88        -         dey
+0c52: ca        -         dex
+0c53: bd 1f 10  -         lda candidates_vectors,x					//x
+0c56: 91 71     -         sta (STKPTR1),y
+0c58: c8        -         iny
+0c59: e8        -         inx
+0c5a: bd 1f 10  -         lda candidates_vectors,x					//y
+0c5d: 91 71     -         sta (STKPTR1),y
+0c5f: 18        -         clc
+0c60: a5 71     -         lda X
+0c62: 69 02     -         adc #C
+0c64: 85 71     -         sta X
+0c66: 90 02     -         bcc out+2
+0c68: e6 72     - out:    inc X+1
+0c6a: a6 3f     -         ldx TEMPX									//restore x
+0c6c: e8        -         inx
+0c6d: ec 27 10  -         cpx candidates_length
+0c70: d0 c1     -         bne each
+0c72: 60        - out:    rts		
+0c73: ad 27 10  - FILTER_IF_CLOSE_PRIMARY:lda candidates_length
+0c76: c9 01     -         cmp #1
+0c78: b0 01     -         bcs start										//cont if 1 or more
+0c7a: 60        -         rts												//else exit, if no candidates
+0c7b: ae 27 10  - start:  ldx candidates_length							//number of grids yet to check
+0c7e: ca        -         dex												//to zero offset
+0c7f: 8a        - each:   txa
+0c80: 0a        -         asl												//double, because datasize is 2
+0c81: a8        -         tay												//offset in y (zero based x * datasize)
+0c82: b9 17 10  -         lda candidates,y
+0c85: 8d 11 10  -         sta grid_pointer
+0c88: b9 1f 10  -         lda candidates_vectors,y
+0c8b: 8d 13 10  -         sta direction_pointer
+0c8e: c8        -         iny
+0c8f: b9 17 10  -         lda candidates,y
+0c92: 8d 12 10  -         sta grid_pointer+1
+0c95: b9 1f 10  -         lda candidates_vectors,y
+0c98: 8d 14 10  -         sta direction_pointer+1
+0c9b: 18        -         clc
+0c9c: ad 11 10  -         lda grid_pointer
+0c9f: 6d 13 10  -         adc direction_pointer
+0ca2: 8d 15 10  -         sta test_pointer
+0ca5: 18        -         clc
+0ca6: ad 12 10  -         lda grid_pointer+1
+0ca9: 6d 14 10  -         adc direction_pointer+1
+0cac: 8d 16 10  -         sta test_pointer+1
+0caf: ad 0d 10  -         lda X
+0cb2: 85 fb     -         sta Y
+0cb4: ad 0e 10  -         lda X + 1
+0cb7: 85 fc     -         sta Y + 1
+0cb9: a9 00     -         lda #0
+0cbb: 85 fe     -         sta ZP4				
+0cbd: ad 16 10  -         lda grid+1		
+0cc0: 85 fd     -         sta ZP3
+0cc2: a0 03     -         ldy #03
+0cc4: 06 fd     - mul8:   asl X
+0cc6: 26 fe     -         rol X+1	
+0cc8: 88        -         dey
+0cc9: d0 f9     -         bne mul8
+0ccb: 18        -         clc
+0ccc: a5 fb     -         lda X
+0cce: 65 fd     -         adc Y
+0cd0: 85 fb     -         sta X
+0cd2: 90 02     -         bcc skip
+0cd4: e6 fc     -         inc X+1
+0cd6: 18        - skip:   clc
+0cd7: a5 fc     -         lda X+1
+0cd9: 65 fe     -         adc Y+1
+0cdb: 85 fc     -         sta X+1	
+0cdd: a0 02     -         ldy #02	
+0cdf: 06 fd     - mul32:  asl X
+0ce1: 26 fe     -         rol X+1	
+0ce3: 88        -         dey
+0ce4: d0 f9     -         bne mul32
+0ce6: 18        -         clc
+0ce7: a5 fb     -         lda X
+0ce9: 65 fd     -         adc Y
+0ceb: 85 fb     -         sta X
+0ced: 90 02     -         bcc skip
+0cef: e6 fc     -         inc X+1
+0cf1: 18        - skip:   clc
+0cf2: a5 fc     -         lda X+1
+0cf4: 65 fe     -         adc Y+1
+0cf6: 85 fc     -         sta X+1	
+0cf8: 18        -         clc
+0cf9: a5 fb     -         lda X
+0cfb: 6d 15 10  -         adc y	
+0cfe: 85 fb     -         sta X
+0d00: 90 02     -         bcc out+2
+0d02: e6 fc     - out:    inc X+1
+0d04: a0 00     -         ldy #0
+0d06: b1 fb     -         lda (ZP1),y
+0d08: c9 20     -         cmp #DOT									//is dot? (empty)
+0d0a: f0 07     -         beq shift									//yes
+0d0c: ca        - cont:   dex
+0d0d: 30 03     -         bmi out										//less than zero, stop
+0d0f: 4c 7f 0c  -         jmp each									//loop back, branch too far
+0d12: 60        - out:    rts
+0d13: 86 3f     - shift:  stx TEMPX									//save x
+0d15: 86 47     -         stx VAR_A									//set index to VAR_A
+0d17: ad 27 10  -         lda X
+0d1a: 85 48     -         sta Y
+0d1c: a9 17     -         lda #<addr
+0d1e: 85 43     -         sta X
+0d20: a9 10     -         lda #>addr
+0d22: 85 44     -         sta X+1
+0d24: a9 02     -         lda #data_size
+0d26: 85 49     -         sta VAR_C
+0d28: 20 db 08  -         jsr SPLICE
+0d2b: ad 27 10  -         lda X
+0d2e: 85 48     -         sta Y
+0d30: a9 1f     -         lda #<addr
+0d32: 85 43     -         sta X
+0d34: a9 10     -         lda #>addr
+0d36: 85 44     -         sta X+1
+0d38: a9 02     -         lda #data_size
+0d3a: 85 49     -         sta VAR_C
+0d3c: 20 db 08  -         jsr SPLICE
+0d3f: ce 27 10  -         dec candidates_length						//dec array length
+0d42: a6 3f     -         ldx TEMPX									//restore x
+0d44: 4c 0c 0d  -         jmp cont									//return to loop
+0d47: ad 27 10  - FILTER_SIDE_PROXIMIY:lda candidates_length
+0d4a: c9 01     -         cmp #1
+0d4c: b0 01     -         bcs start										//cont if 1 or more
+0d4e: 60        -         rts												//else exit, if no candidates
+0d4f: ae 27 10  - start:  ldx candidates_length							//number of grids yet to check
+0d52: ca        -         dex												//to zero offset
+0d53: 8a        - each:   txa
+0d54: 0a        -         asl												//double, because datasize is 2
+0d55: a8        -         tay												//offset in y (zero based x * datasize)
+0d56: b9 17 10  -         lda candidates, y
+0d59: 8d 11 10  -         sta grid_pointer
+0d5c: b9 1f 10  -         lda candidates_vectors,y
+0d5f: 8d 13 10  -         sta direction_pointer
+0d62: c8        -         iny
+0d63: b9 17 10  -         lda candidates, y
+0d66: 8d 12 10  -         sta grid_pointer+1
+0d69: b9 1f 10  -         lda candidates_vectors,y
+0d6c: 8d 14 10  -         sta direction_pointer+1
+0d6f: a9 e0     -         lda #<addr
+0d71: 85 50     -         sta X
+0d73: a9 09     -         lda #>addr
+0d75: 85 51     -         sta X+1
+0d77: a9 28     -         lda #<addr
+0d79: 85 4e     -         sta X
+0d7b: a9 10     -         lda #>addr
+0d7d: 85 4f     -         sta X+1
+0d7f: a0 08     -         ldy #length											
+0d81: 88        -         dey
+0d82: b1 50     - copy:   lda (BV7),y
+0d84: 91 4e     -         sta (BV9),y
 0d86: 88        -         dey
-0d87: d0 f9     -         bne mul8
-0d89: 18        -         clc
-0d8a: a5 fb     -         lda X
-0d8c: 65 fd     -         adc Y
-0d8e: 85 fb     -         sta X
-0d90: 90 02     -         bcc skip
-0d92: e6 fc     -         inc X+1
-0d94: 18        - skip:   clc
-0d95: a5 fc     -         lda X+1
-0d97: 65 fe     -         adc Y+1
-0d99: 85 fc     -         sta X+1	
-0d9b: a0 02     -         ldy #02	
-0d9d: 06 fd     - mul32:  asl X
-0d9f: 26 fe     -         rol X+1	
-0da1: 88        -         dey
-0da2: d0 f9     -         bne mul32
-0da4: 18        -         clc
-0da5: a5 fb     -         lda X
-0da7: 65 fd     -         adc Y
-0da9: 85 fb     -         sta X
-0dab: 90 02     -         bcc skip
-0dad: e6 fc     -         inc X+1
-0daf: 18        - skip:   clc
-0db0: a5 fc     -         lda X+1
-0db2: 65 fe     -         adc Y+1
-0db4: 85 fc     -         sta X+1	
-0db6: 18        -         clc
-0db7: a5 fb     -         lda X
-0db9: 6d 45 0f  -         adc y	
-0dbc: 85 fb     -         sta X
-0dbe: 90 02     -         bcc out+2
-0dc0: e6 fc     - out:    inc X+1
-0dc2: a0 00     -         ldy #0
-0dc4: b1 fb     -         lda (ZP1),y
-0dc6: c9 20     -         cmp #DOT										//is dot? (empty)
-0dc8: f0 0e     -         beq shift										//yes, shift on x
-0dca: a4 40     -         ldy TEMPY										//restore y
-0dcc: c8        -         iny
-0dcd: c0 08     -         cpy #08
-0dcf: d0 85     -         bne repeat
-0dd1: ca        - cont:   dex
-0dd2: 30 03     -         bmi out										//less than zero, stop
-0dd4: 4c ff 0c  -         jmp each										//loop back, branch too far
-0dd7: 60        - out:    rts
-0dd8: 86 3f     - shift:  stx TEMPX									//save x
-0dda: 86 47     -         stx VAR_A									//set index to VAR_A
-0ddc: ad 57 0f  -         lda X
-0ddf: 85 48     -         sta Y
-0de1: a9 47     -         lda #<addr
-0de3: 85 43     -         sta X
-0de5: a9 0f     -         lda #>addr
-0de7: 85 44     -         sta X+1
-0de9: a9 02     -         lda #data_size
-0deb: 85 49     -         sta VAR_C
-0ded: 20 de 08  -         jsr SPLICE
-0df0: ad 57 0f  -         lda X
-0df3: 85 48     -         sta Y
-0df5: a9 4f     -         lda #<addr
-0df7: 85 43     -         sta X
-0df9: a9 0f     -         lda #>addr
-0dfb: 85 44     -         sta X+1
-0dfd: a9 02     -         lda #data_size
-0dff: 85 49     -         sta VAR_C
-0e01: 20 de 08  -         jsr SPLICE
-0e04: ce 57 0f  -         dec candidates_length						//dec array length
-0e07: a6 3f     -         ldx TEMPX									//restore x
-0e09: 4c d1 0d  -         jmp cont									//return to loop
-0e0c: a5 71     - CANDIDATE_FROM_STACK:lda X
-0e0e: 38        -         sec
-0e0f: e9 02     -         sbc #C
-0e11: 85 71     -         sta X
-0e13: b0 02     -         bcs out+2
-0e15: c6 72     - out:    dec X+1
-0e17: a0 00     -         ldy #0									//x
-0e19: b1 71     -         lda (STKPTR1),y
-0e1b: 99 4f 0f  -         sta candidates_vectors,y
-0e1e: c8        -         iny										//y
-0e1f: b1 71     -         lda (STKPTR1),y
-0e21: 99 4f 0f  -         sta candidates_vectors,y
-0e24: a5 71     -         lda X
-0e26: 38        -         sec
-0e27: e9 02     -         sbc #C
-0e29: 85 71     -         sta X
-0e2b: b0 02     -         bcs out+2
-0e2d: c6 72     - out:    dec X+1
-0e2f: a0 00     -         ldy #0									//x
-0e31: b1 71     -         lda (STKPTR1),y
-0e33: 99 47 0f  -         sta candidates,y
-0e36: c8        -         iny										//y
-0e37: b1 71     -         lda (STKPTR1),y
-0e39: 99 47 0f  -         sta candidates,y
-0e3c: a9 01     -         lda #01
-0e3e: 8d 57 0f  -         sta candidates_length
-0e41: 60        - out:    rts
-0e42: ae 57 0f  - CHECK_BIAS:ldx candidates_length
-0e45: ca        -         dex
-0e46: 8a        - each:   txa
-0e47: 0a        -         asl 								// length to offset in
-0e48: a8        -         tay									// y
-0e49: b9 4f 0f  -         lda candidates_vectors,y			// x dim
-0e4c: cd 62 0f  -         cmp bias_direction
-0e4f: d0 09     -         bne not 							//not same
-0e51: c8        -         iny
-0e52: b9 4f 0f  -         lda	candidates_vectors,y			// y dim	
-0e55: cd 63 0f  -         cmp bias_direction+1				//the same
-0e58: f0 06     -         beq found
-0e5a: ca        - not:    dex
-0e5b: 10 e9     -         bpl each
-0e5d: a9 ff     -         lda #-1								//not found: -1
-0e5f: 60        -         rts
-0e60: 8a        - found:  txa									//index in acc
-0e61: 60        -         rts
-0e62: a0 00     - STORE_DEAD_END:ldy #0
-0e64: ad 3f 0f  -         lda maze_start			//x
-0e67: 91 5c     -         sta (STKPTR3),y
-0e69: c8        -         iny
-0e6a: ad 40 0f  -         lda maze_start+1		//y
-0e6d: 91 5c     -         sta (STKPTR3),y
-0e6f: ee 64 0f  -         inc DE_counter			//assumption always less than 255
-0e72: 18        -         clc
-0e73: a5 5c     -         lda X
-0e75: 69 02     -         adc #C
-0e77: 85 5c     -         sta X
-0e79: 90 02     -         bcc out+2
-0e7b: e6 5d     - out:    inc X+1
-0e7d: 60        - out:    rts
-0e7e: 60        - CONNECT_DEAD_ENDS,out:rts
-0e7f: 20 eb 09  - MAZE:   jsr MAZE_FILL
-0e82: 20 62 0e  -         jsr STORE_DEAD_END
-0e85: 20 06 0a  - outer,P_LOOP:jsr MAZE_DOT
-0e88: 20 62 0a  -         jsr POINTERS_FROM_START
-0e8b: 20 9a 0a  -         jsr FILTER_IF_OUT
-0e8e: 20 fd 0a  -         jsr FILTER_IF_DOT
-0e91: 20 1f 0c  -         jsr FILTER_IF_CLOSE_PRIMARY
-0e94: 20 f3 0c  -         jsr FILTER_SIDE_PROXIMIY
-0e97: ad 57 0f  -         lda candidates_length						//check how many we have
-0e9a: c9 00     -         cmp #00										//if zero break;
-0e9c: d0 06     -         bne more									//more than 0
-0e9e: 20 62 0e  -         jsr STORE_DEAD_END							//store dead end
-0ea1: 4c 0e 0f  -         jmp S_LOOP
-0ea4: c9 02     - more:   cmp #02										//if it is two or more
-0ea6: b0 05     -         bcs then									//go to else/then
-0ea8: a9 00     -         lda #0										//otherwise, index->0 in A									
-0eaa: 4c d4 0e  -         jmp skip_else
-0ead: ad 61 0f  - then:   lda bias_counter
-0eb0: c9 00     -         cmp #00
-0eb2: f0 07     -         beq select_random							//use random, not bias
-0eb4: 20 42 0e  -         jsr CHECK_BIAS								//index in a, or -1 if not found
-0eb7: c9 ff     -         cmp #-1
-0eb9: d0 19     -         bne skip_else								//not -1, select this direction
-0ebb: a9 00     - select_random:lda #0										//reset bias counter when selection is random	
-0ebd: 8d 61 0f  -         sta bias_counter
-0ec0: ad 57 0f  -         lda candidates_length						//random index (, candidates length-1)
-0ec3: aa        -         tax
-0ec4: ca        -         dex
-0ec5: 86 02     -         stx ZP0
-0ec7: a5 02     -         lda X	
-0ec9: 85 fd     -         sta ZP3
-0ecb: a9 00     -         lda #0
-0ecd: 85 fe     -         sta ZP4
-0ecf: 20 ab 09  -         jsr rnd_X
-0ed2: a5 14     -         lda WINT
-0ed4: 85 02     - skip_else:sta ZP0										//store index in ZP0	
-0ed6: 0a        -         asl 										//datasize=2	
-0ed7: a8        -         tay											//offset in y
-0ed8: b9 47 0f  -         lda candidates,y
-0edb: 8d 3f 0f  -         sta maze_start
-0ede: b9 4f 0f  -         lda candidates_vectors,y
-0ee1: 8d 62 0f  -         sta bias_direction
-0ee4: c8        -         iny
-0ee5: b9 47 0f  -         lda candidates,y
-0ee8: 8d 40 0f  -         sta maze_start+1
-0eeb: b9 4f 0f  -         lda candidates_vectors,y
-0eee: 8d 63 0f  -         sta bias_direction+1
-0ef1: ee 61 0f  -         inc bias_counter
-0ef4: ad 61 0f  -         lda bias_counter
-0ef7: cd 60 0f  -         cmp bias
-0efa: d0 05     -         bne out+3
-0efc: a9 00     -         lda #00
-0efe: 8d 61 0f  - out:    sta bias_counter
-0f01: ad 57 0f  -         lda candidates_length
-0f04: c9 02     -         cmp #02										//if there are 2 or more, selected has not been discarded yet
-0f06: 90 03     -         bcc repeat_P								//no, repeat loop
-0f08: 20 ae 0b  -         jsr PUSH_REST_ON_STACK													
-0f0b: 4c 85 0e  - repeat_P:jmp P_LOOP
-0f0e: a5 71     - S_LOOP: lda STKPTR1
-0f10: c9 00     -         cmp #<STACK
-0f12: d0 09     -         bne cont
-0f14: a5 72     -         lda STKPTR2
-0f16: c9 c0     -         cmp #>STACK
-0f18: d0 03     -         bne cont
-0f1a: 4c 3c 0f  -         jmp quit									//stack pointer == STACK, stack is empty
-0f1d: 20 0c 0e  - cont:   jsr CANDIDATE_FROM_STACK					//take on grid an its direction from stack
-0f20: 20 1f 0c  -         jsr FILTER_IF_CLOSE_PRIMARY					//recheck if they are still 'safe'
-0f23: 20 f3 0c  -         jsr FILTER_SIDE_PROXIMIY					//in terms of proximity
-0f26: ad 57 0f  -         lda candidates_length						//check if it is still ok
-0f29: c9 00     -         cmp #00										//if zero break; 
-0f2b: f0 e1     -         beq S_LOOP									//no, find another
-0f2d: ad 47 0f  -         lda candidates								//set it to maze_start
-0f30: 8d 3f 0f  -         sta maze_start
-0f33: ad 48 0f  -         lda candidates+1
-0f36: 8d 40 0f  -         sta maze_start+1
-0f39: 4c 85 0e  -         jmp P_LOOP									//make next branch
-0f3c: 60        - quit:   rts
+0d87: 10 f9     -         bpl copy
+0d89: a0 01     -         ldy #01											//y?
+0d8b: b9 13 10  -         lda direction_pointer,y
+0d8e: d0 01     -         bne ok											//if not zero, than this is right dimension
+0d90: 88        -         dey												//not y, but x
+0d91: b9 13 10  - ok:     lda direction_pointer,y							//index of dimension now in y register
+0d94: 99 28 10  -         sta proximity_vectors,y							//set sequence 1,1,0,0 on the right dimension, datasize=2
+0d97: c8        -         iny
+0d98: c8        -         iny
+0d99: 99 28 10  -         sta proximity_vectors,y	
+0d9c: c8        -         iny
+0d9d: c8        -         iny
+0d9e: a9 00     -         lda #0
+0da0: 99 28 10  -         sta proximity_vectors,y	
+0da3: c8        -         iny
+0da4: c8        -         iny
+0da5: 99 28 10  -         sta proximity_vectors,y							//proximity vectors ready
+0da8: a0 00     -         ldy #00
+0daa: ad 11 10  - repeat: lda grid_pointer
+0dad: 18        -         clc
+0dae: 79 28 10  -         adc proximity_vectors,y
+0db1: 8d 15 10  -         sta test_pointer
+0db4: c8        -         iny
+0db5: ad 12 10  -         lda grid_pointer+1
+0db8: 18        -         clc
+0db9: 79 28 10  -         adc proximity_vectors,y
+0dbc: 8d 16 10  -         sta test_pointer+1								//next grid now in test_pointer
+0dbf: 84 40     -         sty TEMPY										//save y
+0dc1: ad 0d 10  -         lda X
+0dc4: 85 fb     -         sta Y
+0dc6: ad 0e 10  -         lda X + 1
+0dc9: 85 fc     -         sta Y + 1
+0dcb: a9 00     -         lda #0
+0dcd: 85 fe     -         sta ZP4				
+0dcf: ad 16 10  -         lda grid+1		
+0dd2: 85 fd     -         sta ZP3
+0dd4: a0 03     -         ldy #03
+0dd6: 06 fd     - mul8:   asl X
+0dd8: 26 fe     -         rol X+1	
+0dda: 88        -         dey
+0ddb: d0 f9     -         bne mul8
+0ddd: 18        -         clc
+0dde: a5 fb     -         lda X
+0de0: 65 fd     -         adc Y
+0de2: 85 fb     -         sta X
+0de4: 90 02     -         bcc skip
+0de6: e6 fc     -         inc X+1
+0de8: 18        - skip:   clc
+0de9: a5 fc     -         lda X+1
+0deb: 65 fe     -         adc Y+1
+0ded: 85 fc     -         sta X+1	
+0def: a0 02     -         ldy #02	
+0df1: 06 fd     - mul32:  asl X
+0df3: 26 fe     -         rol X+1	
+0df5: 88        -         dey
+0df6: d0 f9     -         bne mul32
+0df8: 18        -         clc
+0df9: a5 fb     -         lda X
+0dfb: 65 fd     -         adc Y
+0dfd: 85 fb     -         sta X
+0dff: 90 02     -         bcc skip
+0e01: e6 fc     -         inc X+1
+0e03: 18        - skip:   clc
+0e04: a5 fc     -         lda X+1
+0e06: 65 fe     -         adc Y+1
+0e08: 85 fc     -         sta X+1	
+0e0a: 18        -         clc
+0e0b: a5 fb     -         lda X
+0e0d: 6d 15 10  -         adc y	
+0e10: 85 fb     -         sta X
+0e12: 90 02     -         bcc out+2
+0e14: e6 fc     - out:    inc X+1
+0e16: a0 00     -         ldy #0
+0e18: b1 fb     -         lda (ZP1),y
+0e1a: c9 20     -         cmp #DOT										//is dot? (empty)
+0e1c: f0 0e     -         beq shift										//yes, shift on x
+0e1e: a4 40     -         ldy TEMPY										//restore y
+0e20: c8        -         iny
+0e21: c0 08     -         cpy #08
+0e23: d0 85     -         bne repeat
+0e25: ca        - cont:   dex
+0e26: 30 03     -         bmi out										//less than zero, stop
+0e28: 4c 53 0d  -         jmp each										//loop back, branch too far
+0e2b: 60        - out:    rts
+0e2c: 86 3f     - shift:  stx TEMPX									//save x
+0e2e: 86 47     -         stx VAR_A									//set index to VAR_A
+0e30: ad 27 10  -         lda X
+0e33: 85 48     -         sta Y
+0e35: a9 17     -         lda #<addr
+0e37: 85 43     -         sta X
+0e39: a9 10     -         lda #>addr
+0e3b: 85 44     -         sta X+1
+0e3d: a9 02     -         lda #data_size
+0e3f: 85 49     -         sta VAR_C
+0e41: 20 db 08  -         jsr SPLICE
+0e44: ad 27 10  -         lda X
+0e47: 85 48     -         sta Y
+0e49: a9 1f     -         lda #<addr
+0e4b: 85 43     -         sta X
+0e4d: a9 10     -         lda #>addr
+0e4f: 85 44     -         sta X+1
+0e51: a9 02     -         lda #data_size
+0e53: 85 49     -         sta VAR_C
+0e55: 20 db 08  -         jsr SPLICE
+0e58: ce 27 10  -         dec candidates_length						//dec array length
+0e5b: a6 3f     -         ldx TEMPX									//restore x
+0e5d: 4c 25 0e  -         jmp cont									//return to loop
+0e60: a5 71     - CANDIDATE_FROM_STACK:lda X
+0e62: 38        -         sec
+0e63: e9 02     -         sbc #C
+0e65: 85 71     -         sta X
+0e67: b0 02     -         bcs out+2
+0e69: c6 72     - out:    dec X+1
+0e6b: a0 00     -         ldy #0									//x
+0e6d: b1 71     -         lda (STKPTR1),y
+0e6f: 99 1f 10  -         sta candidates_vectors,y
+0e72: c8        -         iny										//y
+0e73: b1 71     -         lda (STKPTR1),y
+0e75: 99 1f 10  -         sta candidates_vectors,y
+0e78: a5 71     -         lda X
+0e7a: 38        -         sec
+0e7b: e9 02     -         sbc #C
+0e7d: 85 71     -         sta X
+0e7f: b0 02     -         bcs out+2
+0e81: c6 72     - out:    dec X+1
+0e83: a0 00     -         ldy #0									//x
+0e85: b1 71     -         lda (STKPTR1),y
+0e87: 99 17 10  -         sta candidates,y
+0e8a: c8        -         iny										//y
+0e8b: b1 71     -         lda (STKPTR1),y
+0e8d: 99 17 10  -         sta candidates,y
+0e90: a9 01     -         lda #01
+0e92: 8d 27 10  -         sta candidates_length
+0e95: 60        - out:    rts
+0e96: ae 27 10  - CHECK_BIAS:ldx candidates_length
+0e99: ca        -         dex
+0e9a: 8a        - each:   txa
+0e9b: 0a        -         asl 								// length to offset in
+0e9c: a8        -         tay									// y
+0e9d: b9 1f 10  -         lda candidates_vectors,y			// x dim
+0ea0: cd 32 10  -         cmp bias_direction
+0ea3: d0 09     -         bne not 							//not same
+0ea5: c8        -         iny
+0ea6: b9 1f 10  -         lda	candidates_vectors,y			// y dim	
+0ea9: cd 33 10  -         cmp bias_direction+1				//the same
+0eac: f0 06     -         beq found
+0eae: ca        - not:    dex
+0eaf: 10 e9     -         bpl each
+0eb1: a9 ff     -         lda #-1								//not found: -1
+0eb3: 60        -         rts
+0eb4: 8a        - found:  txa									//index in acc
+0eb5: 60        -         rts
+0eb6: a0 00     - STORE_DEAD_END:ldy #0
+0eb8: ad 0f 10  -         lda maze_start			//x
+0ebb: 91 5c     -         sta (STKPTR3),y
+0ebd: c8        -         iny
+0ebe: ad 10 10  -         lda maze_start+1		//y
+0ec1: 91 5c     -         sta (STKPTR3),y
+0ec3: ee 34 10  -         inc DE_counter			//assumption always less than 255
+0ec6: 18        -         clc
+0ec7: a5 5c     -         lda X
+0ec9: 69 02     -         adc #C
+0ecb: 85 5c     -         sta X
+0ecd: 90 02     -         bcc out+2
+0ecf: e6 5d     - out:    inc X+1
+0ed1: 60        - out:    rts
+0ed2: 60        - CONNECT_DEAD_ENDS,out:rts
+0ed3: a2 00     - MAKE_ROOMS:ldx #0
+0ed5: 86 3f     - each:   stx TEMPX
+0ed7: 8a        -         txa
+0ed8: 0a        -         asl
+0ed9: 0a        -         asl
+0eda: a8        -         tay					//datasize 4 from x to y
+0edb: a9 00     -         lda #0
+0edd: 85 fc     -         sta ZP2
+0edf: 85 fe     -         sta ZP4
+0ee1: b9 46 10  -         lda room_def,y
+0ee4: 85 fb     -         sta ZP1				//x from
+0ee6: b9 47 10  -         lda room_def+1,y
+0ee9: 85 fd     -         sta ZP3				//x to
+0eeb: 84 40     -         sty TEMPY
+0eed: 20 67 09  -         jsr rnd_XY
+0ef0: a5 14     -         lda WINT
+0ef2: a4 40     -         ldy TEMPY
+0ef4: 99 36 10  -         sta rooms,y			//top x random(from, to)
+0ef7: a9 00     -         lda #0
+0ef9: 85 fc     -         sta ZP2
+0efb: 85 fe     -         sta ZP4
+0efd: b9 48 10  -         lda room_def+2,y
+0f00: 85 fb     -         sta ZP1				//y from
+0f02: b9 49 10  -         lda room_def+3,y
+0f05: 85 fd     -         sta ZP3				//y to
+0f07: 84 40     -         sty TEMPY
+0f09: 20 67 09  -         jsr rnd_XY
+0f0c: a5 14     -         lda WINT
+0f0e: a4 40     -         ldy TEMPY
+0f10: c8        -         iny
+0f11: 99 36 10  -         sta rooms,y			//top y random(from, to)
+0f14: a9 00     -         lda #0
+0f16: 85 fc     -         sta ZP2
+0f18: 85 fe     -         sta ZP4
+0f1a: a9 03     -         lda #MIN_W
+0f1c: 85 fb     -         sta ZP1
+0f1e: a9 04     -         lda #MAX_W
+0f20: 85 fd     -         sta ZP3
+0f22: 84 40     -         sty TEMPY
+0f24: 20 67 09  -         jsr rnd_XY
+0f27: a5 14     -         lda WINT
+0f29: a4 40     -         ldy TEMPY
+0f2b: c8        -         iny	
+0f2c: 99 36 10  -         sta rooms,y			//w
+0f2f: a9 00     -         lda #0
+0f31: 85 fc     -         sta ZP2
+0f33: 85 fe     -         sta ZP4
+0f35: a9 03     -         lda #MIN_W
+0f37: 85 fb     -         sta ZP1
+0f39: a9 04     -         lda #MAX_W
+0f3b: 85 fd     -         sta ZP3
+0f3d: 84 40     -         sty TEMPY
+0f3f: 20 67 09  -         jsr rnd_XY
+0f42: a5 14     -         lda WINT
+0f44: a4 40     -         ldy TEMPY
+0f46: c8        -         iny	
+0f47: 99 36 10  -         sta rooms,y			//h
+0f4a: a6 3f     -         ldx TEMPX
+0f4c: e8        -         inx
+0f4d: e0 04     -         cpx #04
+0f4f: d0 84     -         bne each
+0f51: 60        - out:    rts
+0f52: 20 b6 0e  - MAZE:   jsr STORE_DEAD_END
+0f55: 20 03 0a  - outer,P_LOOP:jsr MAZE_DOT
+0f58: 20 b6 0a  -         jsr POINTERS_FROM_START
+0f5b: 20 ee 0a  -         jsr FILTER_IF_OUT
+0f5e: 20 51 0b  -         jsr FILTER_IF_DOT
+0f61: 20 73 0c  -         jsr FILTER_IF_CLOSE_PRIMARY
+0f64: 20 47 0d  -         jsr FILTER_SIDE_PROXIMIY
+0f67: ad 27 10  -         lda candidates_length						//check how many we have
+0f6a: c9 00     -         cmp #00										//if zero break;
+0f6c: d0 06     -         bne more									//more than 0
+0f6e: 20 b6 0e  -         jsr STORE_DEAD_END							//store dead end
+0f71: 4c de 0f  -         jmp S_LOOP
+0f74: c9 02     - more:   cmp #02										//if it is two or more
+0f76: b0 05     -         bcs then									//go to else/then
+0f78: a9 00     -         lda #0										//otherwise, index->0 in A									
+0f7a: 4c a4 0f  -         jmp skip_else
+0f7d: ad 31 10  - then:   lda bias_counter
+0f80: c9 00     -         cmp #00
+0f82: f0 07     -         beq select_random							//use random, not bias
+0f84: 20 96 0e  -         jsr CHECK_BIAS								//index in a, or -1 if not found
+0f87: c9 ff     -         cmp #-1
+0f89: d0 19     -         bne skip_else								//not -1, select this direction
+0f8b: a9 00     - select_random:lda #0										//reset bias counter when selection is random	
+0f8d: 8d 31 10  -         sta bias_counter
+0f90: ad 27 10  -         lda candidates_length						//random index (, candidates length-1)
+0f93: aa        -         tax
+0f94: ca        -         dex
+0f95: 86 02     -         stx ZP0
+0f97: a5 02     -         lda X	
+0f99: 85 fd     -         sta ZP3
+0f9b: a9 00     -         lda #0
+0f9d: 85 fe     -         sta ZP4
+0f9f: 20 a8 09  -         jsr rnd_X
+0fa2: a5 14     -         lda WINT
+0fa4: 85 02     - skip_else:sta ZP0										//store index in ZP0	
+0fa6: 0a        -         asl 										//datasize=2	
+0fa7: a8        -         tay											//offset in y
+0fa8: b9 17 10  -         lda candidates,y
+0fab: 8d 0f 10  -         sta maze_start
+0fae: b9 1f 10  -         lda candidates_vectors,y
+0fb1: 8d 32 10  -         sta bias_direction
+0fb4: c8        -         iny
+0fb5: b9 17 10  -         lda candidates,y
+0fb8: 8d 10 10  -         sta maze_start+1
+0fbb: b9 1f 10  -         lda candidates_vectors,y
+0fbe: 8d 33 10  -         sta bias_direction+1
+0fc1: ee 31 10  -         inc bias_counter
+0fc4: ad 31 10  -         lda bias_counter
+0fc7: cd 30 10  -         cmp bias
+0fca: d0 05     -         bne out+3
+0fcc: a9 00     -         lda #00
+0fce: 8d 31 10  - out:    sta bias_counter
+0fd1: ad 27 10  -         lda candidates_length
+0fd4: c9 02     -         cmp #02										//if there are 2 or more, selected has not been discarded yet
+0fd6: 90 03     -         bcc repeat_P								//no, repeat loop
+0fd8: 20 02 0c  -         jsr PUSH_REST_ON_STACK													
+0fdb: 4c 55 0f  - repeat_P:jmp P_LOOP
+0fde: a5 71     - S_LOOP: lda STKPTR1
+0fe0: c9 00     -         cmp #<STACK
+0fe2: d0 09     -         bne cont
+0fe4: a5 72     -         lda STKPTR2
+0fe6: c9 c0     -         cmp #>STACK
+0fe8: d0 03     -         bne cont
+0fea: 4c 0c 10  -         jmp quit									//stack pointer == STACK, stack is empty
+0fed: 20 60 0e  - cont:   jsr CANDIDATE_FROM_STACK					//take on grid an its direction from stack
+0ff0: 20 73 0c  -         jsr FILTER_IF_CLOSE_PRIMARY					//recheck if they are still 'safe'
+0ff3: 20 47 0d  -         jsr FILTER_SIDE_PROXIMIY					//in terms of proximity
+0ff6: ad 27 10  -         lda candidates_length						//check if it is still ok
+0ff9: c9 00     -         cmp #00										//if zero break; 
+0ffb: f0 e1     -         beq S_LOOP									//no, find another
+0ffd: ad 17 10  -         lda candidates								//set it to maze_start
+1000: 8d 0f 10  -         sta maze_start
+1003: ad 18 10  -         lda candidates+1
+1006: 8d 10 10  -         sta maze_start+1
+1009: 4c 55 0f  -         jmp P_LOOP									//make next branch
+100c: 60        - quit:   rts
 
 [MAZE Memory]
-0f3d: 04 00     - MAZE_memory,maze_memory_alloc:.word $0004 					//screen by default
-0f3f: 00 00     - maze_start:.word 0
-0f41: 00 00     - grid_pointer:.word 0
-0f43: 00 00     - direction_pointer:.word 0
-0f45: 00 00     - test_pointer:.word 0
-0f47: 00 00     - candidates:.fill 2,0
-0f49: 00 00     -         .fill 2,0
-0f4b: 00 00     -         .fill 2,0
-0f4d: 00 00     -         .fill 2,0
-0f4f: 00 00     - candidates_vectors:.fill 2,0
-0f51: 00 00     -         .fill 2,0
-0f53: 00 00     -         .fill 2,0
-0f55: 00 00     -         .fill 2,0
-0f57: 00        - candidates_length:.byte 0
-0f58: 00 00     - proximity_vectors:.fill 2,0
-0f5a: 00 00     -         .fill 2,0
-0f5c: 00 00     -         .fill 2,0
-0f5e: 00 00     -         .fill 2,0
-0f60: 02        - bias:   .byte 2
-0f61: 00        - bias_counter:.byte 0
-0f62: 00 00     - bias_direction:.word 0
-0f64: 00        - DE_counter:.byte 0
-0f65: 00        - REM_DE_counter:.byte 0
+100d: 04 00     - MAZE_memory,maze_memory_alloc:.word $0004 					//screen by default
+100f: 00 00     - maze_start:.word 0
+1011: 00 00     - grid_pointer:.word 0
+1013: 00 00     - direction_pointer:.word 0
+1015: 00 00     - test_pointer:.word 0
+1017: 00 00     - candidates:.fill 2,0
+1019: 00 00     -         .fill 2,0
+101b: 00 00     -         .fill 2,0
+101d: 00 00     -         .fill 2,0
+101f: 00 00     - candidates_vectors:.fill 2,0
+1021: 00 00     -         .fill 2,0
+1023: 00 00     -         .fill 2,0
+1025: 00 00     -         .fill 2,0
+1027: 00        - candidates_length:.byte 0
+1028: 00 00     - proximity_vectors:.fill 2,0
+102a: 00 00     -         .fill 2,0
+102c: 00 00     -         .fill 2,0
+102e: 00 00     -         .fill 2,0
+1030: 02        - bias:   .byte 2
+1031: 00        - bias_counter:.byte 0
+1032: 00 00     - bias_direction:.word 0
+1034: 00        - DE_counter:.byte 0
+1035: 00        - REM_DE_counter:.byte 0
+1036: 00 00 00 00                                      - rooms:  .fill 4,0
+103a: 00 00 00 00                                      -         .fill 4,0
+103e: 00 00 00 00                                      -         .fill 4,0
+1042: 00 00 00 00                                      -         .fill 4,0
+1046: 03 0e 02 06                                      - room_def:.byte 3, 14, 2, 6
+104a: 17 21 02 06                                      -         .byte 23, 33, 2, 6
+104e: 03 0e 0e 11                                      -         .byte 3, 14, 14, 17
+1052: 17 21 0e 11                                      -         .byte 23, 33, 14, 17
 
 [Subroutines]
-0f66: ad a9 0f  - subs,irqcode:lda modeflag
-0f69: f0 03     -         beq mode1
-0f6b: 4c 83 0f  -         jmp mode2
-0f6e: a9 01     - mode1:  lda #$01
-0f70: 8d a9 0f  -         sta modeflag
-0f73: a9 00     -         lda #BLACK
-0f75: 8d 20 d0  -         sta BORDER
-0f78: a9 32     -         lda #startRaster
-0f7a: 8d 12 d0  -         sta RASTER_COUNTER
-0f7d: 0e 19 d0  -         asl INTERRUPT_REQUEST_REGISTER
-0f80: 4c 31 ea  -         jmp IRQOUT
-0f83: a9 00     - mode2:  lda #$00
-0f85: 8d a9 0f  -         sta modeflag
-0f88: a9 0f     -         lda #LIGHTGREY
-0f8a: 8d 20 d0  -         sta BORDER
-0f8d: a9 fa     -         lda #endRaster
-0f8f: 8d 12 d0  -         sta RASTER_COUNTER
-0f92: 0e 19 d0  -         asl INTERRUPT_REQUEST_REGISTER
-0f95: 68        -         pla
-0f96: a8        -         tay
-0f97: 68        -         pla
-0f98: aa        -         tax
-0f99: 68        -         pla
-0f9a: 40        -         rti
-0f9b: a2 00     - set_bricks:ldx #00
-0f9d: bd ac 0f  - copy:   lda brick_data,x
-0fa0: 9d 00 30  -         sta char_offset,x
-0fa3: e8        -         inx
-0fa4: e0 08     -         cpx #08
-0fa6: d0 f5     -         bne copy
-0fa8: 60        -         rts
+1056: ad 99 10  - subs,irqcode:lda modeflag
+1059: f0 03     -         beq mode1
+105b: 4c 73 10  -         jmp mode2
+105e: a9 01     - mode1:  lda #$01
+1060: 8d 99 10  -         sta modeflag
+1063: a9 00     -         lda #BLACK
+1065: 8d 20 d0  -         sta BORDER
+1068: a9 32     -         lda #startRaster
+106a: 8d 12 d0  -         sta RASTER_COUNTER
+106d: 0e 19 d0  -         asl INTERRUPT_REQUEST_REGISTER
+1070: 4c 31 ea  -         jmp IRQOUT
+1073: a9 00     - mode2:  lda #$00
+1075: 8d 99 10  -         sta modeflag
+1078: a9 0f     -         lda #LIGHTGREY
+107a: 8d 20 d0  -         sta BORDER
+107d: a9 fa     -         lda #endRaster
+107f: 8d 12 d0  -         sta RASTER_COUNTER
+1082: 0e 19 d0  -         asl INTERRUPT_REQUEST_REGISTER
+1085: 68        -         pla
+1086: a8        -         tay
+1087: 68        -         pla
+1088: aa        -         tax
+1089: 68        -         pla
+108a: 40        -         rti
+108b: a2 00     - set_bricks:ldx #00
+108d: bd 9c 10  - copy:   lda brick_data,x
+1090: 9d 00 30  -         sta char_offset,x
+1093: e8        -         inx
+1094: e0 08     -         cpx #08
+1096: d0 f5     -         bne copy
+1098: 60        -         rts
 
 [Data]
-0fa9: 00        - text,data,modeflag:.byte 0
-0faa: 00        - startX: .byte 0
-0fab: 00        - startY: .byte 0
-0fac: dd c1 38 bb bb 83 1c dd                          - brick_data:.byte $dd,$c1,$38,$bb,$bb,$83,$1c,$dd
+1099: 00        - text,data,modeflag:.byte 0
+109a: 00        - startX: .byte 0
+109b: 00        - startY: .byte 0
+109c: dd c1 38 bb bb 83 1c dd                          - brick_data:.byte $dd,$c1,$38,$bb,$bb,$83,$1c,$dd
