@@ -735,12 +735,131 @@ MAKE_ROOMS:
 
 	out:		rts
 }
+
 /*****************************************************************/
+GET_EXIT_CANDIDATES:
+/**
+
+room index in A
+
+*/
+{
+	init:		ldx #0
+				stx exit_candidates_length		//reset ...
+				asl 							//room index in A
+				asl 							//* 4 and to y	
+				tay								//y offset of room index, datzasize = 4
+												//x +i, y-1, i = 0, w+1 
+												//x +i, y+h, i = 0, w+1 
+				lda rooms+1,y					//y
+				sta TEMPY
+				dec TEMPY						//y-1
+				clc
+				adc rooms+3,y
+				sta TEMPY2						//y+h
+				lda rooms+2,y
+				sta ZP0	
+				lda rooms,y
+				sta BV0							//x + i
+
+				sty VAR_A						//save offset of room index
+				ldx #00
+	width_loop:		lda	exit_candidates_length
+					asl 							//datasize of candidates = 2
+					tay								//exit_candidates offset in y
+					
+					lda	BV0							//x+i
+					sta exit_candidates,y	
+					iny
+					lda TEMPY						//y-1
+					sta exit_candidates,y
+					iny
+					inc exit_candidates_length
+					
+					lda	BV0							//x+i
+					sta exit_candidates,y	
+					iny
+					lda TEMPY2						//y+h
+					sta	exit_candidates,y	
+					inc exit_candidates_length		
+					
+					inc BV0							//i++
+					inx
+					cpx ZP0
+					bne width_loop
+												
+												//cont with height loop
+				ldy VAR_A						//restore offset of room index
+												//x-1, y + i, i= 0, h+1
+												//x + w, y+i, i = 0,h+1
+				lda rooms,y						//x
+				sta TEMPX
+				dec TEMPX						//x-1
+				clc
+				adc rooms+2,y
+				sta TEMPX2						//x+w
+				lda rooms+3,y					//h
+				sta ZP0
+				lda rooms+1,y
+				sta BV0							//y + i
+
+				ldx #00
+	height_loop:	lda	exit_candidates_length
+					asl 							//datasize of candidates = 2
+					tay								//exit_candidates offset in y
+					
+					lda TEMPX						//x-1
+					sta exit_candidates,y
+					iny
+					lda BV0							//y+i
+					sta exit_candidates,y
+					iny
+					inc exit_candidates_length
+
+					lda TEMPX2						//x+w
+					sta exit_candidates,y
+					iny
+					lda BV0							//y+i
+					sta exit_candidates,y
+					iny
+					inc exit_candidates_length
+
+					inc BV0							//i++
+					inx
+					cpx ZP0
+					bne height_loop
+				
+	out: 		rts
+}
+
+/*****************************************************************/
+
+SET_START:
+{
+				lda #0							//room index in A
+				jsr GET_EXIT_CANDIDATES
+				lda exit_candidates_length
+				sta ZP0
+				dec ZP0
+				RandomX(ZP0)
+				lda WINT
+				asl 
+				tay
+				lda exit_candidates,y
+				sta maze_start
+				iny
+				lda exit_candidates,y
+				sta maze_start+1
+	out: 		rts
+}
+
+/*****************************************************************/
+
 //--- MAIN -------------------------------------------------------
+
 MAZE:
 {
-				//jsr MAZE_FILL
-				//start grid might be DE!!
+				//start grid might remain DE!!
 				jsr STORE_DEAD_END
 outer:
 	/** single branch loop */
@@ -754,7 +873,6 @@ outer:
 															//select candidate
 				lda candidates_length						//check how many we have
 				cmp #00										//if zero break;
-				//beq S_LOOP								//goto stack loop
 				bne more									//more than 0
 															//zero options
 				jsr STORE_DEAD_END							//store dead end
@@ -859,8 +977,10 @@ REM_DE_counter:				.byte 0
 rooms:
 .for(var i=0; i<4; i++)		.fill 4,0
 room_def:					
-							.byte 3, 14, 2, 6
-							.byte 23, 33, 2, 6
+							.byte 3, 14, 3, 6
+							.byte 23, 33, 3, 6
 							.byte 3, 14, 14, 17
 							.byte 23, 33, 14, 17
+exit_candidates:			.fill MAX_W * 4 * 2, 0
+exit_candidates_length:		.byte 0
 //----------------------------------------------------------------	
