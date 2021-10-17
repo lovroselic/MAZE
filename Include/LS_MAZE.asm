@@ -767,20 +767,28 @@ room index in A
 	width_loop:		lda	exit_candidates_length
 					asl 							//datasize of candidates = 2
 					tay								//exit_candidates offset in y
-					
+													//up
 					lda	BV0							//x+i
 					sta exit_candidates,y	
+					lda #0
+					sta exit_candidate_dirs,y
 					iny
 					lda TEMPY						//y-1
 					sta exit_candidates,y
+					lda #-1							
+					sta exit_candidate_dirs,y
 					iny
 					inc exit_candidates_length
-					
+													//down
 					lda	BV0							//x+i
 					sta exit_candidates,y	
+					lda #0
+					sta exit_candidate_dirs,y
 					iny
 					lda TEMPY2						//y+h
 					sta	exit_candidates,y	
+					lda #1
+					sta exit_candidate_dirs,y
 					inc exit_candidates_length		
 					
 					inc BV0							//i++
@@ -807,20 +815,28 @@ room index in A
 	height_loop:	lda	exit_candidates_length
 					asl 							//datasize of candidates = 2
 					tay								//exit_candidates offset in y
-					
+													//left
 					lda TEMPX						//x-1
 					sta exit_candidates,y
+					lda #-1
+					sta exit_candidate_dirs,y
 					iny
 					lda BV0							//y+i
 					sta exit_candidates,y
+					lda #0
+					sta exit_candidate_dirs,y
 					iny
 					inc exit_candidates_length
-
+													//right
 					lda TEMPX2						//x+w
 					sta exit_candidates,y
+					lda #01
+					sta exit_candidate_dirs,y
 					iny
 					lda BV0							//y+i
 					sta exit_candidates,y
+					lda #0
+					sta exit_candidate_dirs,y
 					iny
 					inc exit_candidates_length
 
@@ -828,6 +844,7 @@ room index in A
 					inx
 					cpx ZP0
 					bne height_loop
+.break
 				
 	out: 		rts
 }
@@ -982,5 +999,6 @@ room_def:
 							.byte 3, 14, 14, 17
 							.byte 23, 33, 14, 17
 exit_candidates:			.fill MAX_W * 4 * 2, 0
+exit_candidate_dirs:		.fill MAX_W * 4 * 2, 0
 exit_candidates_length:		.byte 0
 //----------------------------------------------------------------	
