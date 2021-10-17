@@ -14,9 +14,30 @@ for each DE:
             test must be dot
             test most not be in a room
             if both true: 
-                //find number of connections (number of dot grids for 4 dirs) is at least 2
+                find number of connections (number of dot grids for 4 dirs) is exactly 2 (from, to)
                 bridge is possible, push it on selection stack
     check selection stack
     if length, create random dot
     else push DE on another stack
+
+
+    -------------------------------
+    connect room::
+
+    make candidates
+    1: select random (index) --> bridge
+
+    test <-- bridge.add(dir)
+    if test dot:
+        bridge. get number of connections -->
+        if N == 2:
+            select this
+            make dot
+            exit
+        else:
+            splice on index
+    goto 1
+
+    
+
         

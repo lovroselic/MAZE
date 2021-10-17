@@ -13,7 +13,7 @@ https://codebase64.org/doku.php?id=base:vicii_memory_organizing
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.08.03"
+.const VER	= "0.08.04"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -65,8 +65,8 @@ init:
 		INIT_MAZE(SCREEN)
 		jsr ROOMS
 		jsr SET_START
-		
 		jsr MAZE
+		jsr CONNECT_ROOMS
 		jsr CONNECT_DEAD_ENDS
 		
 end:

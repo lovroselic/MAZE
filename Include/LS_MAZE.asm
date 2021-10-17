@@ -23,18 +23,19 @@ known bugs:
 //-----------------------CONST-----------------------------------
 
 //.const WALL 	= $E0
-.const WALL 	= $00
-.const DOT 		= $20
-.label STACK	= $C000
-.const DSIZE	= 4
-.const MAX_X	= 38
-.const MIN_X	= 1
-.const MAX_Y 	= 23
-.const MIN_Y 	= 1
+.const WALL 			= $00
+.const DOT 				= $20
+.label STACK			= $C000
+.const DSIZE			= 4
+.const MAX_X			= 38
+.const MIN_X			= 1
+.const MAX_Y 			= 23
+.const MIN_Y 			= 1
 .label DEAD_END_STACK 	= $C400 	//max 256 bytes expected
 .label DE_REMAINDER		= $C500
-.const MIN_W	= 3
-.const MAX_W	= 4
+.const MIN_W			= 3
+.const MAX_W			= 4
+.const ROOM_NUMBER		= 4
 
 //-----------------------MACROS-----------------------------
 
@@ -119,7 +120,6 @@ mul32:		ASL16(ZP3)
 			bne mul32
 			ADD16(ZP1, ZP3)	
 			ADD8to16(ZP1, grid)
-
 }
 
 //--- SUBS -------------------------------------------------------
@@ -223,7 +223,8 @@ PAINT_ROOMS:
 			
 			ldx TEMPX
 			inx
-			cpx #04
+			//cpx #04
+			cpx #ROOM_NUMBER
 			bne each
 	out: 	rts
 
@@ -620,8 +621,6 @@ CHECK_BIAS:
 				rts
 	found:		txa									//index in acc
 				rts
-
-
 }
 
 /*****************************************************************/
@@ -730,7 +729,8 @@ MAKE_ROOMS:
 
 				ldx TEMPX
 				inx
-				cpx #04
+				//cpx #04
+				cpx #ROOM_NUMBER
 				bne each
 
 	out:		rts
@@ -843,9 +843,7 @@ room index in A
 					inc BV0							//i++
 					inx
 					cpx ZP0
-					bne height_loop
-.break
-				
+					bne height_loop				
 	out: 		rts
 }
 
@@ -867,6 +865,77 @@ SET_START:
 				iny
 				lda exit_candidates,y
 				sta maze_start+1
+	out: 		rts
+}
+
+/*****************************************************************/
+
+CONNECT_ROOMS:
+/** 
+room with index 0 is already connected
+room length = 4; data only for 4 rooms 
+*/
+
+{
+			ldx #01													//start with index 1, 0 should be already connected
+	each:															//each room
+	get_one:	ldy exit_candidates_length
+				dey
+				sty ZP0
+				RandomX(ZP0)
+				lda WINT											//random index
+				asl 
+				tay													//offset in y
+																	//storing bridge and dir
+				lda exit_candidates,y
+				sta grid_pointer									//bridge
+				lda exit_candidate_dirs,y
+				sta direction_pointer								//dir to test
+				iny
+				lda exit_candidates,y
+				sta grid_pointer+1
+				lda exit_candidate_dirs,y
+				sta direction_pointer+1							
+																	//calc test
+				lda grid_pointer
+				clc
+				adc direction_pointer
+				sta test_pointer
+				lda grid_pointer+1
+				clc
+				adc direction_pointer+1
+				sta test_pointer+1
+																	//check if test pointer is dot
+				MOV16(maze_memory_alloc, ZP1)
+				CALC_GRID_LOCATION(test_pointer)
+				ldy #0
+				lda (ZP1),y
+				cmp #DOT											//is it dot
+				beq check_connections								//yes, check connections
+
+																	//no, splice and repeat, index still in WINT
+				stx TEMPX											//save x
+				lda WINT											//random index was still in WINT
+				sta VAR_A											//store index in VAR_A
+				MOV8(exit_candidates_length, VAR_B)					//set length to VAR_B
+				SPLICE_ARRAY(exit_candidates, 2)					//splice candidates at x, uses BV1
+				MOV8(exit_candidates_length, VAR_B)					//set length to VAR_B
+				SPLICE_ARRAY(exit_candidate_dirs, 2)				//splice candidates at x, uses BV1
+				dec exit_candidates_length							//exit_candidates_length--
+				ldx TEMPX											//restore x
+				jmp get_one											//try another
+
+check_connections:													//check connections of the bridge
+				stx TEMPX											//save x
+				//cont
+
+
+				//
+				ldx TEMPX											//restore x
+				inx
+				cpx #ROOM_NUMBER
+				beq out
+				jmp each
 	out: 		rts
 }
 
