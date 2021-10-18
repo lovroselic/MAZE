@@ -81,6 +81,7 @@
 .label  STKPTR4     = $5D       //TAN FP accumulator
 .label  STKPTR5     = $5E       //TAN FP accumulator
 .label  STKPTR6     = $5F       //TAN FP accumulator
+.label  GLOBAL_X    = $A        //VERCK
 
 //--------------- LS constants ----------------------------
 .const 	maxCOL 		= 40

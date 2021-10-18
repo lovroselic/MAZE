@@ -648,7 +648,7 @@ CONNECT_DEAD_ENDS: {
 	expects dead ends pointer at (datasize 2) at STKPTR3
 	DE_counter (< 256)
 */
-	//check if still DE (only one grid is dot, rest are wall)
+	//check if still DE (only one grid is dot, rest are wall) --> number of connections is exactly 1
 
 	out:		rts
 }
@@ -741,6 +741,10 @@ GET_EXIT_CANDIDATES:
 /**
 
 room index in A
+uses x,y,a
+TEMPX,2
+TEMPY,2
+ZP0,BV0
 
 */
 {
@@ -877,8 +881,11 @@ room length = 4; data only for 4 rooms
 */
 
 {
-			ldx #01													//start with index 1, 0 should be already connected
-	each:															//each room
+				ldx #01												//start with index 1, 0 should be already connected
+	each:		stx GLOBAL_X											//save x
+				txa													//GET_EXIT_CANDIDATES expects room index in A
+				jsr GET_EXIT_CANDIDATES								//trashes TEMPX
+																	//each room
 	get_one:	ldy exit_candidates_length
 				dey
 				sty ZP0
@@ -912,9 +919,7 @@ room length = 4; data only for 4 rooms
 				lda (ZP1),y
 				cmp #DOT											//is it dot
 				beq check_connections								//yes, check connections
-
 																	//no, splice and repeat, index still in WINT
-				stx TEMPX											//save x
 				lda WINT											//random index was still in WINT
 				sta VAR_A											//store index in VAR_A
 				MOV8(exit_candidates_length, VAR_B)					//set length to VAR_B
@@ -922,22 +927,78 @@ room length = 4; data only for 4 rooms
 				MOV8(exit_candidates_length, VAR_B)					//set length to VAR_B
 				SPLICE_ARRAY(exit_candidate_dirs, 2)				//splice candidates at x, uses BV1
 				dec exit_candidates_length							//exit_candidates_length--
-				ldx TEMPX											//restore x
 				jmp get_one											//try another
 
 check_connections:													//check connections of the bridge
-				stx TEMPX											//save x
-				//cont
-
-
-				//
-				ldx TEMPX											//restore x
-				inx
+				CheckConnection(grid_pointer)						//number of connections in VAR_D
+				lda VAR_D
+				cmp #02												//exactly two directions required for bridge
+				beq yes												//yes, paint
+				jmp get_one											//not ok, get another
+	yes:															//paint
+				MOV16(maze_memory_alloc, ZP1)
+				CALC_GRID_LOCATION(grid_pointer)					//paint dot of bridge, which is in grid_pointer
+				lda #DOT
+				ldy #0
+				sta (ZP1),y
+				
+				ldx GLOBAL_X										//restore x
+				inx													//next room
 				cpx #ROOM_NUMBER
 				beq out
 				jmp each
 	out: 		rts
 }
+
+/*****************************************************************/
+
+.macro CheckConnection(bridge){
+/**
+bridge: pointer to bridge x: bridge, y: bridge + 1 --> BV1
+uses: BV7,BV8,BV9,BV10, VAR_D
+uses: ZP1,ZP2
+uses: x,y,a
+result: VAR_D number of connections
+*/
+				lda bridge
+				sta BV7
+				lda bridge+1
+				sta BV8
+				lda #0
+				sta VAR_D
+				jsr CHECK_CONNECTION
+}
+
+CHECK_CONNECTION:
+{
+				ldx #03						//iterate over directions
+	each:		txa
+				asl
+				tay							//offset in y
+				lda BV7
+				clc
+				adc BASIC_DIRS,y
+				sta BV9						//test.x
+				iny
+				lda BV8
+				clc
+				adc BASIC_DIRS,y
+				sta BV10					//test.y
+											
+				MOV16(maze_memory_alloc, ZP1)
+				CALC_GRID_LOCATION(BV9)
+				ldy #0
+				lda (ZP1),y
+				cmp #DOT
+				bne skip
+				inc VAR_D
+											
+	skip:		dex
+				bpl each
+
+	out:		rts
+}
+
 
 /*****************************************************************/
 
