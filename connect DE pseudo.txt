@@ -7,7 +7,7 @@ for each DE:
 
     init selection stack            
     for each dir:
-        test if candidate (bridge) is wall
+        if candidate (bridge) is wall
         bridge is not out
         prolong in the same direction -> test
             test must not be out
@@ -21,22 +21,18 @@ for each DE:
     else push DE on another stack
 
 
-    -------------------------------
-    connect room::
+----------------
+for each DE:
+    check if DE, if true:
+        make candidates: bridges
+            Filter if out
+            filter if dot
+            same dir proximity to dot (filter if not)
+            filter connections are == 2 
+        check candidate stack
+        if length, create random dot
+        else push DE on another stack
 
-    make candidates
-    1: select random (index) --> bridge
-
-    test <-- bridge.add(dir)
-    if test dot:
-        bridge. get number of connections -->
-        if N == 2:
-            select this
-            make dot
-            exit
-        else:
-            splice on index
-    goto 1
 
     
 

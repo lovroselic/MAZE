@@ -413,7 +413,15 @@ each:		ldy #0
 
 /*****************************************************************/
 
-FILTER_IF_CLOSE_PRIMARY:
+.macro Filter_If_Next_Primary_Is(test)
+/**  test is the value to be compared,  if not equal to test candidate is removed */
+{
+		lda #test
+		sta BV0
+		jsr FILTER_IF_NEXT_PRIMARY
+}
+
+FILTER_IF_NEXT_PRIMARY:
 /** first pass: remove those that are close from primary direction */
 {	
 			lda candidates_length
@@ -428,7 +436,6 @@ FILTER_IF_CLOSE_PRIMARY:
 	each:	txa
 			asl												//double, because datasize is 2
 			tay												//offset in y (zero based x * datasize)
-
 															//x
 			lda candidates,y
 			sta grid_pointer
@@ -456,7 +463,7 @@ FILTER_IF_CLOSE_PRIMARY:
 
 			ldy #0
 			lda (ZP1),y
-			cmp #DOT									//is dot? (empty)
+			cmp BV0										//BV0 holds the value to filter out
 			beq shift									//yes
 			
 	cont:	dex
@@ -475,6 +482,51 @@ FILTER_IF_CLOSE_PRIMARY:
 			jmp cont									//return to loop
 }
 
+/*****************************************************************/
+
+.macro Filter_if_N_Connections(N)
+/** N number of connections, must be N, otherwise removed */
+{
+			lda #N
+			sta BV0
+			jsr FILTER_N_CONNECTIONS
+}
+
+FILTER_N_CONNECTIONS:
+{
+			lda candidates_length
+			cmp #1
+			bcs start										//cont if 1 or more
+			rts												//else exit, if no candidates
+
+	start:	
+			ldx candidates_length							//number of grids yet to check
+			dex												//to zero offset
+
+	each:	
+			txa
+			asl												//double, because datasize is 2
+			tay												//offset in y (zero based x * datasize)
+			//
+
+
+			//
+	cont:	
+			dex
+			bmi out											//less than zero, stop
+			jmp each										//loop back, branch too far
+	out:	rts
+	shift:
+			stx TEMPX									//save x
+			stx VAR_A									//set index to VAR_A
+			MOV8(candidates_length, VAR_B)				//set length to VAR_B
+			SPLICE_ARRAY(candidates, 2)					//splice candidates at x, uses BV1
+			MOV8(candidates_length, VAR_B)				//set length to VAR_B, as splice is changing that
+			SPLICE_ARRAY(candidates_vectors, 2)			//splice candidates_vectors at x, uses BV1
+			dec candidates_length						//dec array length
+			ldx TEMPX									//restore x
+			jmp cont									//return to loop
+}
 /*****************************************************************/
 
 FILTER_SIDE_PROXIMIY:
@@ -557,7 +609,7 @@ FILTER_SIDE_PROXIMIY:
 	cont:	
 			dex
 			bmi out										//less than zero, stop
-			jmp each										//loop back, branch too far
+			jmp each									//loop back, branch too far
 	out:	rts
 	shift:
 			stx TEMPX									//save x
@@ -646,10 +698,51 @@ STORE_DEAD_END:
 CONNECT_DEAD_ENDS: {
 /**
 	expects dead ends pointer at (datasize 2) at STKPTR3
-	DE_counter (< 256)
+	DE_counter (<= 255)
+	uses GLOBAL_X, all subroutines must stay away from it
 */
-	//check if still DE (only one grid is dot, rest are wall) --> number of connections is exactly 1
+	 
+	
+				
+				SET_ADDR(DEAD_END_STACK, STKPTR3)		//reset address to point to start of the stack
 
+				ldx DE_counter							//starting from last DE towards 0th
+				dex
+
+	each_DE:	stx GLOBAL_X
+				txa
+				asl 						//datasize=2
+				tay							//offset in y
+				
+				lda (STKPTR3),y
+				sta maze_start
+				iny
+				lda (STKPTR3),y
+				sta maze_start+1			//selected Dead End --> in maze_start
+
+				CheckConnection(maze_start)	//result in VAR_D
+				lda VAR_D					//check if still DE (only one grid is dot, rest are wall)
+				cmp #01						//--> number of connections is exactly 1
+				beq still_DE				//yes
+				jmp end_loop				//no, check next
+	still_DE:
+				jsr POINTERS_FROM_START		//candidates for bridges in candidates
+				jsr FILTER_IF_OUT
+				jsr FILTER_IF_DOT
+				Filter_If_Next_Primary_Is(WALL)
+				Filter_if_N_Connections(2)
+.break
+
+
+
+
+
+				
+	end_loop:	
+				ldx GLOBAL_X
+				dex
+				bmi out
+				jmp each_DE
 	out:		rts
 }
 
@@ -663,8 +756,7 @@ MAKE_ROOMS:
 		sizex, sizey: width, height
 */
 
-{
-	
+{	
 				ldx #0
 		each:	stx TEMPX
 				txa
@@ -729,7 +821,6 @@ MAKE_ROOMS:
 
 				ldx TEMPX
 				inx
-				//cpx #04
 				cpx #ROOM_NUMBER
 				bne each
 
@@ -1015,7 +1106,7 @@ outer:
 				jsr POINTERS_FROM_START
 				jsr FILTER_IF_OUT
 				jsr FILTER_IF_DOT
-				jsr FILTER_IF_CLOSE_PRIMARY
+				Filter_If_Next_Primary_Is(DOT)
 				jsr FILTER_SIDE_PROXIMIY
 															//select candidate
 				lda candidates_length						//check how many we have
@@ -1085,7 +1176,7 @@ select_random:
 
 		cont:
 				jsr CANDIDATE_FROM_STACK					//take on grid an its direction from stack
-				jsr FILTER_IF_CLOSE_PRIMARY					//recheck if they are still 'safe'
+				Filter_If_Next_Primary_Is(DOT)				//recheck if they are still 'safe'
 				jsr FILTER_SIDE_PROXIMIY					//in terms of proximity
 
 				lda candidates_length						//check if it is still ok
