@@ -502,16 +502,24 @@ FILTER_N_CONNECTIONS:
 	start:	
 			ldx candidates_length							//number of grids yet to check
 			dex												//to zero offset
+			stx TEMPX										// save x 
 
 	each:	
 			txa
 			asl												//double, because datasize is 2
 			tay												//offset in y (zero based x * datasize)
-			//
-
-
-			//
+			
+			lda candidates,y
+			sta grid_pointer
+			iny
+			lda candidates,y
+			sta grid_pointer+1
+			CheckConnection(grid_pointer) 					//return in VARD_D
+			lda VAR_D										//value to compare is in BV0
+			cmp BV0
+			bne shift										//not equal, shift											
 	cont:	
+			ldy TEMPX										//restore x
 			dex
 			bmi out											//less than zero, stop
 			jmp each										//loop back, branch too far
@@ -711,22 +719,22 @@ CONNECT_DEAD_ENDS: {
 
 	each_DE:	stx GLOBAL_X
 				txa
-				asl 						//datasize=2
-				tay							//offset in y
+				asl 									//datasize=2
+				tay										//offset in y
 				
 				lda (STKPTR3),y
 				sta maze_start
 				iny
 				lda (STKPTR3),y
-				sta maze_start+1			//selected Dead End --> in maze_start
+				sta maze_start+1						//selected Dead End --> in maze_start
 
-				CheckConnection(maze_start)	//result in VAR_D
-				lda VAR_D					//check if still DE (only one grid is dot, rest are wall)
-				cmp #01						//--> number of connections is exactly 1
-				beq still_DE				//yes
-				jmp end_loop				//no, check next
+				CheckConnection(maze_start)				//result in VAR_D
+				lda VAR_D								//check if still DE (only one grid is dot, rest are wall)
+				cmp #01									//--> number of connections is exactly 1
+				beq still_DE							//yes
+				jmp end_loop							//no, check next
 	still_DE:
-				jsr POINTERS_FROM_START		//candidates for bridges in candidates
+				jsr POINTERS_FROM_START					//candidates for bridges in candidates
 				jsr FILTER_IF_OUT
 				jsr FILTER_IF_DOT
 				Filter_If_Next_Primary_Is(WALL)
@@ -1045,7 +1053,7 @@ check_connections:													//check connections of the bridge
 
 .macro CheckConnection(bridge){
 /**
-bridge: pointer to bridge x: bridge, y: bridge + 1 --> BV1
+bridge: pointer to bridge x: bridge, y: bridge + 1 --> BV7, BV8
 uses: BV7,BV8,BV9,BV10, VAR_D
 uses: ZP1,ZP2
 uses: x,y,a
