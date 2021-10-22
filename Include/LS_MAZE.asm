@@ -502,9 +502,9 @@ FILTER_N_CONNECTIONS:
 	start:	
 			ldx candidates_length							//number of grids yet to check
 			dex												//to zero offset
-			stx TEMPX										// save x 
-
+			
 	each:	
+			stx TEMPX										// save x 
 			txa
 			asl												//double, because datasize is 2
 			tay												//offset in y (zero based x * datasize)
@@ -515,16 +515,18 @@ FILTER_N_CONNECTIONS:
 			lda candidates,y
 			sta grid_pointer+1
 			CheckConnection(grid_pointer) 					//return in VARD_D
+			ldx TEMPX										//restore x
 			lda VAR_D										//value to compare is in BV0
 			cmp BV0
 			bne shift										//not equal, shift											
 	cont:	
-			ldy TEMPX										//restore x
+			//ldx TEMPX										//restore x
 			dex
 			bmi out											//less than zero, stop
 			jmp each										//loop back, branch too far
 	out:	rts
 	shift:
+			
 			stx TEMPX									//save x
 			stx VAR_A									//set index to VAR_A
 			MOV8(candidates_length, VAR_B)				//set length to VAR_B
@@ -709,11 +711,8 @@ CONNECT_DEAD_ENDS: {
 	DE_counter (<= 255)
 	uses GLOBAL_X, all subroutines must stay away from it
 */
-	 
-	
-				
+	 			
 				SET_ADDR(DEAD_END_STACK, STKPTR3)		//reset address to point to start of the stack
-
 				ldx DE_counter							//starting from last DE towards 0th
 				dex
 
@@ -739,12 +738,42 @@ CONNECT_DEAD_ENDS: {
 				jsr FILTER_IF_DOT
 				Filter_If_Next_Primary_Is(WALL)
 				Filter_if_N_Connections(2)
-.break
 
-
-
-
-
+				lda candidates_length						//check how many we have
+				cmp #00										//if zero break;
+				bne more									//more than 0
+															//zero options
+				ldy #0										//store into remainder stack
+				lda maze_start								//x
+				sta (STKPTR5),y
+				iny
+				lda maze_start+1							//y
+				sta (STKPTR5),y
+				inc REM_DE_counter							//assumption always less than 255
+				ADD_C_16(STKPTR5, 2)
+				jmp end_loop								//nothing to paint
+	more:
+				cmp #02										//if it is two or more
+				bcs select_random							//go to else/select_random
+				lda #0										//otherwise, index->0 in A									
+				jmp skip_else
+select_random:
+				lda candidates_length						//random index (, candidates length-1)
+				tax
+				dex
+				stx ZP0
+				RandomX(ZP0)
+				lda WINT
+	skip_else:												//index in a	
+				asl 										//datasize=2	
+				tay											//offset in y
+															//selected candidate to maze_start 
+				lda candidates,y	
+				sta maze_start
+				iny
+				lda candidates,y
+				sta maze_start+1
+				jsr MAZE_DOT								//and paint
 				
 	end_loop:	
 				ldx GLOBAL_X
