@@ -13,7 +13,7 @@ https://codebase64.org/doku.php?id=base:vicii_memory_organizing
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.09.03"
+.const VER	= "0.09.05"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -67,7 +67,11 @@ init:
 		jsr SET_START
 		jsr MAZE
 		jsr CONNECT_ROOMS
+		SET_ADDR(DEAD_END_STACK, STKPTR3)		//reset address to point to start of the stack
 		jsr CONNECT_DEAD_ENDS
+
+		//jsr SWAP_DEAD_END_STACK
+		//jsr CONNECT_DEAD_ENDS		//second iteration
 		
 end:
 		WaitAnyKey()

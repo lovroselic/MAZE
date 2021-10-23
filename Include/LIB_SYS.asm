@@ -4,7 +4,6 @@
 .const 	CIA_ICR 	= $dc0d
 .const 	CIA2_ICR 	= $dd0d
 .const 	SCREEN 		= $0400
-.label  COLORRAM    = $D800
 .const	CUR_COLOR 	= $0286
 .const	CHRGET		= $0073
 

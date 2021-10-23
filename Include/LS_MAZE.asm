@@ -19,12 +19,15 @@ known bugs:
 #import "LS_System.asm"
 #import "LS_GRID.asm"
 #import "LS_Random.asm"
+#import "LS_Screen.asm"
+#import "LIB_SymbolTable.asm"
 
 //-----------------------CONST-----------------------------------
 
 //.const WALL 	= $E0
 .const WALL 			= $00
-.const DOT 				= $20
+//.const DOT 				= $20
+.const DOT 				= $2E
 .label STACK			= $C000
 .const DSIZE			= 4
 .const MAX_X			= 38
@@ -47,18 +50,34 @@ arguments: memory: 	memory address of where to create maze
 */
 
 	SET_ADDR(memory, maze_memory_alloc)
-	//MOV16(start, maze_start)
 	SET_ADDR(STACK, STKPTR1)
-	//dead end stacks
 	SET_ADDR(DEAD_END_STACK, STKPTR3)
 	SET_ADDR(DE_REMAINDER, STKPTR5)
 	lda #00
 	sta DE_counter
 	sta REM_DE_counter
 
-	//fill
 	jsr MAZE_FILL
+	FillColor(LIGHTGREY)					//debug
+}
 
+/*****************************************************************/
+
+SWAP_DEAD_END_STACK:
+/** 
+set pointers to repead DE connection
+*/
+{
+		lda DE_counter
+		sta BV0
+		lda REM_DE_counter
+		sta DE_counter
+		lda BV0
+		sta REM_DE_counter
+
+		SET_ADDR(DEAD_END_STACK, STKPTR5)
+		SET_ADDR(DE_REMAINDER, STKPTR3)
+		rts
 }
 
 /*****************************************************************/
@@ -91,7 +110,7 @@ out:	sta bias_counter
 /**
 	arguments,
 		grid as grid.x, 
-				grid.y = grid.x + 1
+		grid.y = grid.x + 1
 
 	assumes:
 		maze_memory_alloc in ZP1
@@ -122,6 +141,42 @@ mul32:		ASL16(ZP3)
 			ADD8to16(ZP1, grid)
 }
 
+/*****************************************************************/
+
+.macro CALC_COLOR_LOCATION(grid){
+	
+/**
+	arguments,
+		grid as grid.x, 
+		grid.y = grid.x + 1
+	
+	destroys: 
+		ZP1,ZP3
+		y,a
+	result:
+		ZP1 holds address of color ram
+
+ */
+			SET_ADDR(COLOR_RAM, ZP1)
+			lda #0
+			sta ZP4				
+			lda grid+1		
+			sta ZP3
+		
+			ldy #03
+mul8:		ASL16(ZP3)
+			dey
+			bne mul8
+			ADD16(ZP1, ZP3)
+			ldy #02	
+mul32:		ASL16(ZP3)
+			dey
+			bne mul32
+			ADD16(ZP1, ZP3)	
+			ADD8to16(ZP1, grid)
+}
+
+/*****************************************************************/
 //--- SUBS -------------------------------------------------------
 
 MAZE_FILL:
@@ -194,14 +249,14 @@ PAINT_ROOMS:
 			ldx #0
 	cont_w:		ldy #0
 	cont_h:
-				//bv9 +x -> maze start
+									//bv9 +x -> maze start
 				stx TEMPA1
 				lda BV9
 				clc
 				adc TEMPA1
 				sta maze_start
 
-				//b910 +y ->maze start+1
+									//b910 +y ->maze start+1
 				sty TEMPA1
 				lda BV10
 				clc
@@ -209,8 +264,6 @@ PAINT_ROOMS:
 				sta maze_start+1
 
 				sty TEMPY
-				
-				//maze_dot
 				jsr MAZE_DOT
 
 				ldy TEMPY
@@ -223,7 +276,6 @@ PAINT_ROOMS:
 			
 			ldx TEMPX
 			inx
-			//cpx #04
 			cpx #ROOM_NUMBER
 			bne each
 	out: 	rts
@@ -498,11 +550,9 @@ FILTER_N_CONNECTIONS:
 			cmp #1
 			bcs start										//cont if 1 or more
 			rts												//else exit, if no candidates
-
 	start:	
 			ldx candidates_length							//number of grids yet to check
-			dex												//to zero offset
-			
+			dex												//to zero offset	
 	each:	
 			stx TEMPX										// save x 
 			txa
@@ -520,7 +570,6 @@ FILTER_N_CONNECTIONS:
 			cmp BV0
 			bne shift										//not equal, shift											
 	cont:	
-			//ldx TEMPX										//restore x
 			dex
 			bmi out											//less than zero, stop
 			jmp each										//loop back, branch too far
@@ -546,11 +595,9 @@ FILTER_SIDE_PROXIMIY:
 			cmp #1
 			bcs start										//cont if 1 or more
 			rts												//else exit, if no candidates
-
 	start:	
 			ldx candidates_length							//number of grids yet to check
 			dex												//to zero offset
-
 	each:	
 			txa
 			asl												//double, because datasize is 2
@@ -588,7 +635,6 @@ FILTER_SIDE_PROXIMIY:
 			iny
 			iny
 			sta proximity_vectors,y							//proximity vectors ready
-
 															//calc location for each proximity vector, from grid_pointer
 			ldy #00
 	repeat:	lda grid_pointer
@@ -614,8 +660,6 @@ FILTER_SIDE_PROXIMIY:
 			iny
 			cpy #08
 			bne repeat
-			
-
 	cont:	
 			dex
 			bmi out										//less than zero, stop
@@ -645,7 +689,6 @@ CANDIDATE_FROM_STACK:
 				iny										//y
 				lda (STKPTR1),y
 				sta candidates_vectors,y
-
 														//grid
 				SUB_C_16(STKPTR1, 2)					//stackpointer - 2
 				ldy #0									//x
@@ -700,6 +743,16 @@ STORE_DEAD_END:
 				sta (STKPTR3),y
 				inc DE_counter			//assumption always less than 255
 				ADD_C_16(STKPTR3, 2)
+
+				//debug start
+				
+				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
+				lda #RED
+				ldy #0
+				sta (ZP1),y
+				
+				//debug end
+
 	out:		rts
 }
 
@@ -712,10 +765,10 @@ CONNECT_DEAD_ENDS: {
 	uses GLOBAL_X, all subroutines must stay away from it
 */
 	 			
-				SET_ADDR(DEAD_END_STACK, STKPTR3)		//reset address to point to start of the stack
+				//SET_ADDR(DEAD_END_STACK, STKPTR3)		//do this outside!!
 				ldx DE_counter							//starting from last DE towards 0th
 				dex
-
+.break
 	each_DE:	stx GLOBAL_X
 				txa
 				asl 									//datasize=2
@@ -727,21 +780,58 @@ CONNECT_DEAD_ENDS: {
 				lda (STKPTR3),y
 				sta maze_start+1						//selected Dead End --> in maze_start
 
+				//debug start, green currently considered
+				
+				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
+				lda #GREEN
+				ldy #0
+				sta (ZP1),y
+				
+				//debug end
+.break
+
 				CheckConnection(maze_start)				//result in VAR_D
+.break
 				lda VAR_D								//check if still DE (only one grid is dot, rest are wall)
 				cmp #01									//--> number of connections is exactly 1
 				beq still_DE							//yes
+														//no, paint neutral
+
+				//debug start, not DE anymore --> lightgrey
+				
+				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
+				lda #LIGHTGREY
+				ldy #0
+				sta (ZP1),y
+				
+				//debug end
+
 				jmp end_loop							//no, check next
 	still_DE:
+.break
 				jsr POINTERS_FROM_START					//candidates for bridges in candidates
+.break
 				jsr FILTER_IF_OUT
+.break
 				jsr FILTER_IF_DOT
+.break
 				Filter_If_Next_Primary_Is(WALL)
+.break
 				Filter_if_N_Connections(2)
 
+.break
+				//debug start, DE already considered
+				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
+				lda #DARKGREY
+				ldy #0
+				sta (ZP1),y
+				//debug end
+				
+				
 				lda candidates_length						//check how many we have
 				cmp #00										//if zero break;
 				bne more									//more than 0
+
 															//zero options
 				ldy #0										//store into remainder stack
 				lda maze_start								//x
@@ -751,19 +841,30 @@ CONNECT_DEAD_ENDS: {
 				sta (STKPTR5),y
 				inc REM_DE_counter							//assumption always less than 255
 				ADD_C_16(STKPTR5, 2)
+
+				//debug start, DE already considered, but not solved -> remains red
+				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
+				lda #RED
+				ldy #0
+				sta (ZP1),y
+				//debug end
+
 				jmp end_loop								//nothing to paint
 	more:
 				cmp #02										//if it is two or more
 				bcs select_random							//go to else/select_random
+.break
 				lda #0										//otherwise, index->0 in A									
 				jmp skip_else
 select_random:
+.break
 				lda candidates_length						//random index (, candidates length-1)
 				tax
 				dex
 				stx ZP0
 				RandomX(ZP0)
 				lda WINT
+.break
 	skip_else:												//index in a	
 				asl 										//datasize=2	
 				tay											//offset in y
@@ -774,8 +875,16 @@ select_random:
 				lda candidates,y
 				sta maze_start+1
 				jsr MAZE_DOT								//and paint
+
+				//debug start			//DE solved as blue
+				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
+				lda #BLUE
+				ldy #0
+				sta (ZP1),y
+				//debug end
 				
 	end_loop:	
+.break
 				ldx GLOBAL_X
 				dex
 				bmi out
