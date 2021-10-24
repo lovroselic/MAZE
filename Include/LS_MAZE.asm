@@ -777,7 +777,11 @@ POLISH_DEAD_END:
 				sta DE_counter							//reset counter
 
 				ldx REM_DE_counter						//starting from last DE towards 0th
-				dex
+				cpx #0
+				bne start
+				rts
+
+	start:		dex
 	each_DE:
 				stx GLOBAL_X
 				txa
@@ -836,8 +840,15 @@ CONNECT_DEAD_ENDS:
 */
 {			
 				SET_ADDR(DEAD_END_STACK, STKPTR3)		//reset address to point to start of the stack
+				lda #0
+				sta REM_DE_counter
+
 				ldx DE_counter							//starting from last DE towards 0th
-				dex
+				cpx #0
+				bne start
+				rts
+
+	start:		dex
 	each_DE:	stx GLOBAL_X
 				txa
 				asl 									//datasize=2
@@ -866,7 +877,6 @@ CONNECT_DEAD_ENDS:
 	still_DE:
 				jsr POINTERS_FROM_START					//candidates for bridges in candidates
 				jsr FILTER_IF_OUT
-				//jsr FILTER_IF_DOT
 				Filter_if_grid_has_value(DOT)
 				Filter_If_Next_Primary_Is(WALL)
 				Filter_if_N_Connections(2)

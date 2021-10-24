@@ -13,7 +13,7 @@ https://codebase64.org/doku.php?id=base:vicii_memory_organizing
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.09.09"
+.const VER	= "0.09.10"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -47,8 +47,8 @@ setup:
 		sta BACKGROUND
 
 
-interrupt:							//interupt
-		sei							//set interrupt
+interrupt:								//interupt
+		sei								//set interrupt
 		TurnOffCiaInterrupt()
 		EnableRasterInterrupt()
 		Clear_RST8()
@@ -56,8 +56,7 @@ interrupt:							//interupt
 		sta RASTER_COUNTER
 		SetIrqVector(irqcode)
 		cli
-									//interrupt end
-
+										//interrupt end
 begin:
 		cld
 init:
@@ -67,11 +66,16 @@ init:
 		jsr SET_START
 		jsr MAZE
 		jsr CONNECT_ROOMS
-
-		// while DE > 0, repeat:
+		
+.break
+while:		lda DE_counter				// while DE > 0, repeat:
+			cmp #00
+			beq done
 			jsr CONNECT_DEAD_ENDS
 .break
 			jsr POLISH_DEAD_END
+			jmp while
+done:
 		
 end:
 		WaitAnyKey()
