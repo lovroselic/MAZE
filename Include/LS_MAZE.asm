@@ -353,6 +353,16 @@ FILTER_IF_OUT:
 
 /*****************************************************************/
 
+.macro Filter_if_grid_has_value(value)
+/** 
+	value in BV0
+*/
+{
+			lda #value
+			sta BV0
+			jsr FILTER_IF_DOT
+}
+
 FILTER_IF_DOT:
 {		
 
@@ -380,7 +390,8 @@ each:		txa
 
 			ldy #0
 			lda (ZP1),y
-			cmp #DOT
+			//cmp #DOT									//paramtrize on BV0
+			cmp BV0										//value to compare in BV0
 			beq shift
 														//end of grid check
 	cont:	dex
@@ -743,9 +754,67 @@ POLISH_DEAD_END:
 	uses GLOBAL_X, all subroutines must stay away from it
 */
 {
+				SET_ADDR(DE_REMAINDER, STKPTR5)			//reset address to point to start of the stack
+				SET_ADDR(DEAD_END_STACK, STKPTR3)		//reset address to point to start of the stack
+				lda #0	
+				sta DE_counter							//reset counter
 
+.break
+				ldx REM_DE_counter						//starting from last DE towards 0th
+				dex
+.break
+	each_DE:
+				stx GLOBAL_X
+				txa
+				asl
+				tay
 
-	out: 	rts
+				lda (STKPTR3),y
+				sta maze_start
+				iny
+				lda (STKPTR3),y
+				sta maze_start+1						//selected Dead End --> in maze_start
+
+.break
+				jsr POINTERS_FROM_START
+.break
+				//jsr FILTER_IF_DOT						
+				Filter_if_grid_has_value(WALL) 			//only exit from DE remains in candidate vectors, at index 0
+														//calc next possible DE
+.break
+				ldy #0
+				lda	maze_start
+				clc
+				adc candidates_vectors,y
+				sta grid_pointer
+				iny
+				lda maze_start+1
+				clc
+				adc candidates_vectors,y
+				sta grid_pointer+1						//next possible DE in grid_pointer
+.break
+														//paint dot
+				jsr MAZE_DOT
+
+				//debug start, not DE anymore --> lightgrey
+				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
+				lda #LIGHTGREY
+				ldy #0
+				sta (ZP1),y
+				//debug end
+.break
+
+				MOV16(grid_pointer, maze_start)			//move next to maze_start, because ...
+.break
+				jsr STORE_DEAD_END						//STORE_DEAD_END expects it
+				
+.break
+	end_loop:	
+				ldx GLOBAL_X
+				dex
+				bmi out
+				jmp each_DE
+	out: 		rts
 }
 
 /*****************************************************************/
@@ -788,7 +857,8 @@ CONNECT_DEAD_ENDS:
 	still_DE:
 				jsr POINTERS_FROM_START					//candidates for bridges in candidates
 				jsr FILTER_IF_OUT
-				jsr FILTER_IF_DOT
+				//jsr FILTER_IF_DOT
+				Filter_if_grid_has_value(DOT)
 				Filter_If_Next_Primary_Is(WALL)
 				Filter_if_N_Connections(2)
 
@@ -1209,7 +1279,8 @@ outer:
 				jsr MAZE_DOT
 				jsr POINTERS_FROM_START
 				jsr FILTER_IF_OUT
-				jsr FILTER_IF_DOT
+				//jsr FILTER_IF_DOT
+				Filter_if_grid_has_value(DOT)
 				Filter_If_Next_Primary_Is(DOT)
 				jsr FILTER_SIDE_PROXIMIY
 															//select candidate
