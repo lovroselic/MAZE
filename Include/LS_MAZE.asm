@@ -195,6 +195,23 @@ uses ZP1,y
 
 /*****************************************************************/
 
+MAZE_WALL:
+/** 
+assumes start grid set 
+uses ZP1,y
+*/
+{
+			MOV16(maze_memory_alloc, ZP1)
+			CALC_GRID_LOCATION(maze_start)
+
+			lda #WALL
+			ldy #0
+			sta (ZP1),y
+			rts
+}
+
+/*****************************************************************/
+
 ROOMS: 
 /** room creation wrapper */
 {
@@ -759,29 +776,23 @@ POLISH_DEAD_END:
 				lda #0	
 				sta DE_counter							//reset counter
 
-.break
 				ldx REM_DE_counter						//starting from last DE towards 0th
 				dex
-.break
 	each_DE:
 				stx GLOBAL_X
 				txa
 				asl
 				tay
 
-				lda (STKPTR3),y
+				lda (STKPTR5),y
 				sta maze_start
 				iny
-				lda (STKPTR3),y
+				lda (STKPTR5),y
 				sta maze_start+1						//selected Dead End --> in maze_start
 
-.break
 				jsr POINTERS_FROM_START
-.break
-				//jsr FILTER_IF_DOT						
 				Filter_if_grid_has_value(WALL) 			//only exit from DE remains in candidate vectors, at index 0
 														//calc next possible DE
-.break
 				ldy #0
 				lda	maze_start
 				clc
@@ -792,23 +803,21 @@ POLISH_DEAD_END:
 				clc
 				adc candidates_vectors,y
 				sta grid_pointer+1						//next possible DE in grid_pointer
-.break
 														//paint dot
-				jsr MAZE_DOT
+				jsr MAZE_WALL
 
 				//debug start, not DE anymore --> lightgrey
+				
 				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
 				lda #LIGHTGREY
 				ldy #0
 				sta (ZP1),y
+				
 				//debug end
-.break
 
 				MOV16(grid_pointer, maze_start)			//move next to maze_start, because ...
-.break
 				jsr STORE_DEAD_END						//STORE_DEAD_END expects it
 				
-.break
 	end_loop:	
 				ldx GLOBAL_X
 				dex
