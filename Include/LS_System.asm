@@ -232,14 +232,16 @@ arguments: X,Y 16 bit addresses; add value of Y to X
 result in X
 16 bit overflow ignored, but carry is set
 */	
-		clc
+		
 		lda X
+		clc
 		adc Y
 		sta X
 		bcc skip
 		inc X+1
-skip:	clc
+skip:	
 		lda X+1
+		clc
 		adc Y+1
 		sta X+1	
 }
@@ -254,8 +256,9 @@ arguments:
 	C constant, 8 bit
 result in X
 */
-		clc
+		
 		lda X
+		clc
 		adc #C
 		sta X
 		bcc out+2
@@ -293,8 +296,8 @@ add value of y to X
 result in X
 16 bit overflow ignored, but carry is set
 */		
-		clc
 		lda X
+		clc
 		adc y	
 		sta X
 		bcc out+2
@@ -361,7 +364,6 @@ uses: BV7,BV9
 			sta (BV9),y
 			dey
 			bpl copy
-
 	
 }
 

@@ -3,7 +3,7 @@
 //----------------------------------------------------------------			
 /*****************************************************************
 LS_MAZE.asm
-v0.15
+v0.20
 
 MAZE structs and methods
 
@@ -24,18 +24,18 @@ known bugs:
 
 //-----------------------CONST-----------------------------------
 
-//.const WALL 	= $E0
 .const WALL 			= $00
 //.const DOT 				= $20
-.const DOT 				= $2E
+//.const DOT 				= $2E
+.const DOT 				= $E0
 .label STACK			= $C000
 .const DSIZE			= 4
 .const MAX_X			= 38
 .const MIN_X			= 1
 .const MAX_Y 			= 23
 .const MIN_Y 			= 1
-.label DEAD_END_STACK 	= $C400 	//max 256 bytes expected
-.label DE_REMAINDER		= $C500
+.label DEAD_END_STACK 	= $C600 	//max 256 bytes expected
+.label DE_REMAINDER		= $C700
 .const MIN_W			= 3
 .const MAX_W			= 4
 .const ROOM_NUMBER		= 4
@@ -401,7 +401,6 @@ each:		txa
 			lda (ZP1),y
 			cmp #DOT
 			beq shift
-			
 														//end of grid check
 	cont:	dex
 			bpl each
@@ -575,7 +574,6 @@ FILTER_N_CONNECTIONS:
 			jmp each										//loop back, branch too far
 	out:	rts
 	shift:
-			
 			stx TEMPX									//save x
 			stx VAR_A									//set index to VAR_A
 			MOV8(candidates_length, VAR_B)				//set length to VAR_B
@@ -733,8 +731,10 @@ STORE_DEAD_END:
 /**
 	DE pointer in STKPTR3
 	data size 2
+	DE in maze_start
 */
 {
+.break
 				ldy #0
 				lda maze_start			//x
 				sta (STKPTR3),y
@@ -745,53 +745,57 @@ STORE_DEAD_END:
 				ADD_C_16(STKPTR3, 2)
 
 				//debug start
-				
 				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
 				lda #RED
 				ldy #0
 				sta (ZP1),y
-				
 				//debug end
+.break
 
 	out:		rts
 }
 
 /*****************************************************************/
 
-CONNECT_DEAD_ENDS: {
+CONNECT_DEAD_ENDS: 
 /**
 	expects dead ends pointer at (datasize 2) at STKPTR3
 	DE_counter (<= 255)
 	uses GLOBAL_X, all subroutines must stay away from it
 */
-	 			
-				//SET_ADDR(DEAD_END_STACK, STKPTR3)		//do this outside!!
+{			
+.break
+				SET_ADDR(DEAD_END_STACK, STKPTR3)		//reset address to point to start of the stack
+.break
 				ldx DE_counter							//starting from last DE towards 0th
 				dex
-.break
 	each_DE:	stx GLOBAL_X
 				txa
 				asl 									//datasize=2
 				tay										//offset in y
 				
+.break
 				lda (STKPTR3),y
 				sta maze_start
 				iny
 				lda (STKPTR3),y
 				sta maze_start+1						//selected Dead End --> in maze_start
+.break
 
 				//debug start, green currently considered
-				
+				/*
 				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
 				lda #GREEN
 				ldy #0
 				sta (ZP1),y
-				
+				*/
 				//debug end
+				//DEBUG
 .break
+				//jmp end_loop
+				//DEBUG
 
 				CheckConnection(maze_start)				//result in VAR_D
-.break
 				lda VAR_D								//check if still DE (only one grid is dot, rest are wall)
 				cmp #01									//--> number of connections is exactly 1
 				beq still_DE							//yes
@@ -805,26 +809,21 @@ CONNECT_DEAD_ENDS: {
 				sta (ZP1),y
 				
 				//debug end
-
 				jmp end_loop							//no, check next
 	still_DE:
-.break
 				jsr POINTERS_FROM_START					//candidates for bridges in candidates
-.break
 				jsr FILTER_IF_OUT
-.break
 				jsr FILTER_IF_DOT
-.break
 				Filter_If_Next_Primary_Is(WALL)
-.break
 				Filter_if_N_Connections(2)
 
-.break
 				//debug start, DE already considered
+				
 				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
-				lda #DARKGREY
+				lda #LIGHTGREY
 				ldy #0
 				sta (ZP1),y
+				
 				//debug end
 				
 				
@@ -840,31 +839,30 @@ CONNECT_DEAD_ENDS: {
 				lda maze_start+1							//y
 				sta (STKPTR5),y
 				inc REM_DE_counter							//assumption always less than 255
-				ADD_C_16(STKPTR5, 2)
+				ADD_C_16(STKPTR5, 2)						//inc REM DE stackpointer
 
-				//debug start, DE already considered, but not solved -> remains red
-				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
-				lda #RED
+				//debug start, DE already considered, but not solved -> to purple
+				
+				CALC_COLOR_LOCATION(maze_start)				//color loc in ZP1
+				lda #PURPLE
 				ldy #0
 				sta (ZP1),y
+				
 				//debug end
 
 				jmp end_loop								//nothing to paint
 	more:
 				cmp #02										//if it is two or more
 				bcs select_random							//go to else/select_random
-.break
 				lda #0										//otherwise, index->0 in A									
 				jmp skip_else
 select_random:
-.break
 				lda candidates_length						//random index (, candidates length-1)
 				tax
 				dex
 				stx ZP0
 				RandomX(ZP0)
 				lda WINT
-.break
 	skip_else:												//index in a	
 				asl 										//datasize=2	
 				tay											//offset in y
@@ -876,15 +874,17 @@ select_random:
 				sta maze_start+1
 				jsr MAZE_DOT								//and paint
 
-				//debug start			//DE solved as blue
+				//debug start							//DE solved as blue
+				/*
 				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
 				lda #BLUE
 				ldy #0
 				sta (ZP1),y
+				*/
 				//debug end
 				
-	end_loop:	
 .break
+	end_loop:	
 				ldx GLOBAL_X
 				dex
 				bmi out
@@ -1243,8 +1243,7 @@ CHECK_CONNECTION:
 
 MAZE:
 {
-				//start grid might remain DE!!
-				jsr STORE_DEAD_END
+				jsr STORE_DEAD_END							//start grid might remain DE!!
 outer:
 	/** single branch loop */
 	P_LOOP:
