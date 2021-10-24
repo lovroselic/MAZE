@@ -13,7 +13,7 @@ https://codebase64.org/doku.php?id=base:vicii_memory_organizing
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.09.10"
+.const VER	= "0.10.00"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------
@@ -67,12 +67,10 @@ init:
 		jsr MAZE
 		jsr CONNECT_ROOMS
 		
-.break
 while:		lda DE_counter				// while DE > 0, repeat:
 			cmp #00
 			beq done
 			jsr CONNECT_DEAD_ENDS
-.break
 			jsr POLISH_DEAD_END
 			jmp while
 done:
@@ -81,7 +79,6 @@ end:
 		WaitAnyKey()
 		jmp init
 		rts
-
 
 //-----------------------SUBS-------------------------------
 

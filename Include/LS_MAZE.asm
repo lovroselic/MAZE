@@ -25,16 +25,16 @@ known bugs:
 //-----------------------CONST-----------------------------------
 
 .const WALL 			= $00
-//.const DOT 				= $20
+.const DOT 				= $20
 //.const DOT 				= $2E
-.const DOT 				= $E0
+//.const DOT 				= $E0
 .label STACK			= $C000
 .const DSIZE			= 4
 .const MAX_X			= 38
 .const MIN_X			= 1
 .const MAX_Y 			= 23
 .const MIN_Y 			= 1
-.label DEAD_END_STACK 	= $C600 	//max 256 bytes expected
+.label DEAD_END_STACK 	= $C600 		//max 256 bytes expected
 .label DE_REMAINDER		= $C700
 .const MIN_W			= 3
 .const MAX_W			= 4
@@ -253,7 +253,6 @@ PAINT_ROOMS:
 				clc
 				adc TEMPA1
 				sta maze_start
-
 									//b910 +y ->maze start+1
 				sty TEMPA1
 				lda BV10
@@ -407,7 +406,6 @@ each:		txa
 
 			ldy #0
 			lda (ZP1),y
-			//cmp #DOT									//paramtrize on BV0
 			cmp BV0										//value to compare in BV0
 			beq shift
 														//end of grid check
@@ -751,14 +749,6 @@ STORE_DEAD_END:
 				sta (STKPTR3),y
 				inc DE_counter			//assumption always less than 255
 				ADD_C_16(STKPTR3, 2)
-
-				//debug start
-				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
-				lda #RED
-				ldy #0
-				sta (ZP1),y
-				//debug end
-
 	out:		rts
 }
 
@@ -810,15 +800,6 @@ POLISH_DEAD_END:
 														//paint dot
 				jsr MAZE_WALL
 
-				//debug start, not DE anymore --> lightgrey
-				
-				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
-				lda #LIGHTGREY
-				ldy #0
-				sta (ZP1),y
-				
-				//debug end
-
 				MOV16(grid_pointer, maze_start)			//move next to maze_start, because ...
 				jsr STORE_DEAD_END						//STORE_DEAD_END expects it
 				
@@ -864,15 +845,6 @@ CONNECT_DEAD_ENDS:
 				lda VAR_D								//check if still DE (only one grid is dot, rest are wall)
 				cmp #01									//--> number of connections is exactly 1
 				beq still_DE							//yes
-														//no, paint neutral
-
-				//debug start, not DE anymore --> lightgrey
-				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
-				lda #LIGHTGREY
-				ldy #0
-				sta (ZP1),y
-				//debug end
-
 				jmp end_loop							//no, check next
 	still_DE:
 				jsr POINTERS_FROM_START					//candidates for bridges in candidates
@@ -880,19 +852,10 @@ CONNECT_DEAD_ENDS:
 				Filter_if_grid_has_value(DOT)
 				Filter_If_Next_Primary_Is(WALL)
 				Filter_if_N_Connections(2)
-
-				//debug start, DE already considered
-				CALC_COLOR_LOCATION(maze_start)			//color loc in ZP1
-				lda #LIGHTGREY
-				ldy #0
-				sta (ZP1),y
-				//debug end
-				
 				
 				lda candidates_length						//check how many we have
 				cmp #00										//if zero break;
 				bne more									//more than 0
-
 															//zero options
 				ldy #0										//store into remainder stack
 				lda maze_start								//x
@@ -902,14 +865,6 @@ CONNECT_DEAD_ENDS:
 				sta (STKPTR5),y
 				inc REM_DE_counter							//assumption always less than 255
 				ADD_C_16(STKPTR5, 2)						//inc REM DE stackpointer
-
-				//debug start, DE already considered, but not solved -> to purple
-				CALC_COLOR_LOCATION(maze_start)				//color loc in ZP1
-				lda #PURPLE
-				ldy #0
-				sta (ZP1),y
-				//debug end
-
 				jmp end_loop								//nothing to paint
 	more:
 				cmp #02										//if it is two or more
