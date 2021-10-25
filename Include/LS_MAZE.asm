@@ -24,8 +24,8 @@ known bugs:
 
 //-----------------------CONST-----------------------------------
 
-.const WALL 			= $00
-.const DOT 				= $20
+.label WALL 			= $00
+.label DOT 				= $20
 //.const DOT 				= $2E
 //.const DOT 				= $E0
 .label STACK			= $C000
@@ -65,7 +65,7 @@ arguments: memory: 	memory address of where to create maze
 
 .macro MAZE_BIAS(B){
 /**
-arguments: bias
+	arguments: bias
 */
 		lda #B
 		sta bias
@@ -178,33 +178,28 @@ fill:
 
 /*****************************************************************/
 
-MAZE_DOT:
+.macro Maze_set_value(value)
 /** 
-assumes start grid set 
-uses ZP1,y
+	accessor for MAZE_DOT
+	value in TEMPY2
 */
 {
-			MOV16(maze_memory_alloc, ZP1)
-			CALC_GRID_LOCATION(maze_start)
-
-			lda #DOT
-			ldy #0
-			sta (ZP1),y
-			rts
+			lda #value
+			sta TEMPY2
+			jsr MAZE_DOT
 }
 
-/*****************************************************************/
-
-MAZE_WALL:
+MAZE_DOT:
 /** 
-assumes start grid set 
-uses ZP1,y
+	assumes start grid set 
+	uses ZP1,y
+	direct usage not working, use macro!
 */
 {
 			MOV16(maze_memory_alloc, ZP1)
 			CALC_GRID_LOCATION(maze_start)
 
-			lda #WALL
+			lda TEMPY2
 			ldy #0
 			sta (ZP1),y
 			rts
@@ -261,7 +256,7 @@ PAINT_ROOMS:
 				sta maze_start+1
 
 				sty TEMPY
-				jsr MAZE_DOT
+				Maze_set_value(DOT)
 
 				ldy TEMPY
 				iny
@@ -798,7 +793,7 @@ POLISH_DEAD_END:
 				adc candidates_vectors,y
 				sta grid_pointer+1						//next possible DE in grid_pointer
 														//paint dot
-				jsr MAZE_WALL
+				Maze_set_value(WALL)
 
 				MOV16(grid_pointer, maze_start)			//move next to maze_start, because ...
 				jsr STORE_DEAD_END						//STORE_DEAD_END expects it
@@ -886,8 +881,8 @@ select_random:
 				sta maze_start
 				iny
 				lda candidates,y
-				sta maze_start+1
-				jsr MAZE_DOT								//and paint
+				sta maze_start+1							
+				Maze_set_value(DOT) 						//and paint
 				
 	end_loop:	
 				ldx GLOBAL_X
@@ -1250,10 +1245,9 @@ MAZE:
 outer:
 	/** single branch loop */
 	P_LOOP:
-				jsr MAZE_DOT
+				Maze_set_value(DOT)
 				jsr POINTERS_FROM_START
 				jsr FILTER_IF_OUT
-				//jsr FILTER_IF_DOT
 				Filter_if_grid_has_value(DOT)
 				Filter_If_Next_Primary_Is(DOT)
 				jsr FILTER_SIDE_PROXIMIY
