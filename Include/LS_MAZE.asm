@@ -31,9 +31,9 @@ known bugs:
 .label STACK			= $C000
 .const DSIZE			= 4
 .const MAX_X			= 38
-.const MIN_X			= 1
+.const MIN_X			= 2
 .const MAX_Y 			= 23
-.const MIN_Y 			= 1
+.const MIN_Y 			= 2
 .label DEAD_END_STACK 	= $C600 		//max 256 bytes expected
 .label DE_REMAINDER		= $C700
 .const MIN_W			= 3
@@ -1358,8 +1358,8 @@ REM_DE_counter:				.byte 0
 rooms:
 .for(var i=0; i<4; i++)		.fill 4,0
 room_def:					
-							.byte 3, 14, 3, 6
-							.byte 23, 33, 3, 6
+							.byte 3, 14, 4, 6
+							.byte 23, 33, 4, 6
 							.byte 3, 14, 14, 17
 							.byte 23, 33, 14, 17
 exit_candidates:			.fill MAX_W * 4 * 2, 0

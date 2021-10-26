@@ -13,7 +13,7 @@ https://codebase64.org/doku.php?id=base:vicii_memory_organizing
 */
 //java -jar kickass.jar MAZE.asm
 
-.const VER	= "0.10.01"
+.const VER	= "0.10.02"
 #import "Include\LIB_SymbolTable.asm"
 
 //------------------------DISK------------------------------

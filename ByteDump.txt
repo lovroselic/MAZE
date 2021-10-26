@@ -384,14 +384,14 @@
 0af5: b9 6c 14  -         lda candidates,y
 0af8: c9 27     -         cmp #MAX_X+1
 0afa: b0 18     -         bcs shift
-0afc: c9 01     -         cmp #MIN_X
+0afc: c9 02     -         cmp #MIN_X
 0afe: 90 14     -         bcc shift
 0b00: c8        -         iny
 0b01: 18        -         clc
 0b02: b9 6c 14  -         lda candidates,y
 0b05: c9 18     -         cmp #MAX_Y+1
 0b07: b0 0b     -         bcs shift
-0b09: c9 01     -         cmp #MIN_Y
+0b09: c9 02     -         cmp #MIN_Y
 0b0b: 90 07     -         bcc shift
 0b0d: ca        - cont:   dex
 0b0e: 30 03     -         bmi out
@@ -1568,8 +1568,8 @@
 148f: 00 00 00 00                                      -         .fill 4,0
 1493: 00 00 00 00                                      -         .fill 4,0
 1497: 00 00 00 00                                      -         .fill 4,0
-149b: 03 0e 03 06                                      - room_def:.byte 3, 14, 3, 6
-149f: 17 21 03 06                                      -         .byte 23, 33, 3, 6
+149b: 03 0e 04 06                                      - room_def:.byte 3, 14, 4, 6
+149f: 17 21 04 06                                      -         .byte 23, 33, 4, 6
 14a3: 03 0e 0e 11                                      -         .byte 3, 14, 14, 17
 14a7: 17 21 0e 11                                      -         .byte 23, 33, 14, 17
 14ab: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  - exit_candidates:.fill MAX_W * 4 * 2, 0
